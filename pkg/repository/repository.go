@@ -84,11 +84,11 @@ func (userRepository *UserRepository) Update(ctx context.Context, user models.Us
 func (userRepository *UserRepository) All(ctx context.Context) (getAllResp []*models.User, err error) {
 
 	dbConn := userRepository.mysqlInterface.NewClientConnection()
-	log.Logger(ctx).Info("in all users repository mothod ")
+	//log.Logger(ctx).Info("in all users repository mothod ")
 
 	users := []*models.User{}
 	err = dbConn.Find(&users).Error
-	log.Logger(ctx).Info("in all users service mothod ")
+	//log.Logger(ctx).Info("in all users service mothod ")
 	if err != nil {
 		return nil, err
 	}

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"blogging-app/log"
-
 	"blogging-app/pkg/models"
 	"blogging-app/pkg/repository"
 )
@@ -35,9 +33,11 @@ func (b *basicUsersService) CreateUser(ctx context.Context, createReq models.Cre
 	}, err
 }
 func (b *basicUsersService) GetAllUser(ctx context.Context) (allRecordResp []*models.User, err error) {
-	log.Logger(ctx).Info("in all users service mothod ")
-	allRecordResp, err = b.userRepositoryInterface.All(ctx)
+	fmt.Println("in all users service mothod")
+	//log.Logger(ctx).Info("in all users service mothod ")
 
+	allRecordResp, err = b.userRepositoryInterface.All(ctx)
+	fmt.Println(allRecordResp)
 	return allRecordResp, err
 }
 func (b *basicUsersService) UpdateUser(ctx context.Context, upadteReq models.User) (updateResp *models.User, err error) {

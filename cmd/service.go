@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"flag"
+	"fmt"
 
 	"net/http"
 
@@ -35,7 +36,7 @@ func Run() {
 	router.Use(loggingMiddleware)
 	endpoints.NewAppRoute(router, restHandler)
 
-	http.ListenAndServe(":8081", router)
+	fmt.Println(http.ListenAndServe(":8081", router))
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

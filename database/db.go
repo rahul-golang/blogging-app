@@ -25,7 +25,7 @@ func NewMySQLClientConn() MySQLClientConnInterface {
 //NewClientConnection  new mysql client connection
 func (mySQLClientConn MySQLClientConn) NewClientConnection() *gorm.DB {
 
-	client, err := gorm.Open("mysql", "rahul:password@tcp(127.0.0.1:3306)/ecommerce?charset=utf8&parseTime=True&loc=Local")
+	client, err := gorm.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ecommerce?charset=utf8&parseTime=True&loc=Local")
 
 	if err != nil {
 		fmt.Println("Error in Create client connection", err)

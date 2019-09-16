@@ -1,11 +1,12 @@
 package endpoints
 
 import (
+	"blogging-app/pkg/gqlhandler"
+
 	"github.com/gorilla/mux"
-	"github.com/rahul-golang/ecommerce/users/pkg/httphandler"
 )
 
-func NewAppRoute(router *mux.Router, restHandler *httphandler.UserHttpHandlers) {
-	router.HandleFunc("/users", restHandler.GetUser).Methods("GET")
+func NewAppRoute(router *mux.Router, gqlHandler *gqlhandler.GraphQlHandlers) {
+	router.HandleFunc("/users", gqlHandler.GetAllUser).Methods("GET")
 
 }

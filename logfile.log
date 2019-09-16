@@ -1,4 +1,0 @@
-time="2019-09-15T16:10:44+05:30" level=info msg="in all users service mothod " file=/home/amol/go/src/blogging-app/pkg/service/service.go function="blogging-app/pkg/service.(*basicUsersService).GetAllUser" line=38 requestid=4129841576
-time="2019-09-15T16:10:44+05:30" level=info msg="in all users repository mothod " file=/home/amol/go/src/blogging-app/pkg/repository/repository.go function="blogging-app/pkg/repository.(*UserRepository).All" line=92 requestid=4129841576
-time="2019-09-15T16:10:45+05:30" level=info msg="in all users service mothod " file=/home/amol/go/src/blogging-app/pkg/repository/repository.go function="blogging-app/pkg/repository.(*UserRepository).All" line=96 requestid=4129841576
-time="2019-09-15T16:10:45+05:30" level=info msg=sucess file=/home/amol/go/src/blogging-app/pkg/httphandler/handler.go function=blogging-app/pkg/httphandler.UserHttpHandlers.GetAllUser line=146 requestid=4129841576
