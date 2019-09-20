@@ -29,10 +29,9 @@ func Run() {
 
 	//Injected dependancies
 	dataStoreInterface := database.NewMySQLClientConn()
-	userRepositoryInterface := repository.NewUserRepository(dataStoreInterface)
-	usersServiceInterface := service.NewBasicUsersService(userRepositoryInterface)
-	//restHandler := httphandler.NewUserRestHandler(usersServiceInterface)
-	restHandler := gqlhandler.NewGraphQlHandlers(usersServiceInterface)
+	appRepositoryInterface := repository.NewAppRepository(dataStoreInterface)
+	appServiceInterface := service.NewBasicAppService(appRepositoryInterface)
+	restHandler := gqlhandler.NewGraphQlHandlers(appServiceInterface)
 	router.Use(loggingMiddleware)
 	endpoints.NewAppRoute(router, restHandler)
 

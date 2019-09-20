@@ -8,18 +8,23 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+//Resolver for all Resolver function with AppService Leyer dependancies
 type Resolver struct {
-	userService service.UsersService
+	appService service.AppService
 }
 
-func NewResolver(userService service.UsersService) *Resolver {
+//NewResolver inject appservice dependancies
+//helps to call  all the app Services
+func NewResolver(appService service.AppService) *Resolver {
 	fmt.Println("IN NewResolver")
-	return &Resolver{userService: userService}
+	return &Resolver{appService: appService}
 }
+
+//AllUserResolver return all user Resolver
 func (resolver Resolver) AllUserResolver(param graphql.ResolveParams) (interface{}, error) {
 	fmt.Println("IN AllUserResolver")
-	fmt.Println(resolver.userService)
-	users, err := resolver.userService.GetAllUser(param.Context)
+	fmt.Println(resolver.appService)
+	users, err := resolver.appService.GetAllUser(param.Context)
 
 	if err != nil {
 		fmt.Println(err)
@@ -28,6 +33,7 @@ func (resolver Resolver) AllUserResolver(param graphql.ResolveParams) (interface
 	return users, nil
 }
 
+//CreateUser resolver function to create user Record
 func (resolver Resolver) CreateUser(params graphql.ResolveParams) (interface{}, error) {
 	var user models.User
 
@@ -41,13 +47,49 @@ func (resolver Resolver) CreateUser(params graphql.ResolveParams) (interface{}, 
 	user.Password = params.Args["password"].(string)
 	var createUserReq models.CreateUserReq
 	createUserReq.User = user
-	users, err := resolver.userService.CreateUser(params.Context, createUserReq)
+	users, err := resolver.appService.CreateUser(params.Context, createUserReq)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
+	fmt.Println(users)
 	return users, nil
 }
+
+//CreateBlog resolver function call Service layer create function
+func (resolver Resolver) CreateBlog(params graphql.ResolveParams) (interface{}, error) {
+	var blog models.Blog
+
+	//
+	blog.UserID = params.Args["user_id"].(int)
+	blog.Tittle = params.Args["tittle"].(string)
+	blog.RelatedTo = params.Args["related_to"].(string)
+	blog.Containt = params.Args["containt"].(string)
+
+	blogResp, err := resolver.appService.CreateBlog(params.Context, blog)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println(blogResp)
+	return blogResp, nil
+}
+
+//AllBlogsResolver return all user Resolver
+func (resolver Resolver) AllBlogsResolver(param graphql.ResolveParams) (interface{}, error) {
+	fmt.Println("IN AllUserResolver")
+	fmt.Println(resolver.appService)
+	blogs, err := resolver.appService.GetAllBlogs(param.Context)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return blogs, nil
+}
+
+//NewSchema creates GraphQL Schema for Application
+//excecutes only once when application starts
 func (resolver *Resolver) NewSchema() graphql.Schema {
 
 	rootMutation := graphql.NewObject(graphql.ObjectConfig{
@@ -90,26 +132,51 @@ func (resolver *Resolver) NewSchema() graphql.Schema {
 				},
 				Resolve: resolver.CreateUser,
 			},
+			"createblog": &graphql.Field{
+				Type: blogType,
+				Args: graphql.FieldConfigArgument{
+
+					// "id": &graphql.ArgumentConfig{
+					// 	Type: graphql.NewNonNull(graphql.Int),
+					// },
+					"tittle": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"related_to": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"containt": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"user_id": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.Int),
+					},
+					// "created_at": &graphql.ArgumentConfig{
+					// 	Type: graphql.NewNonNull(graphql.String),
+					// },
+					// "deleted_at": &graphql.ArgumentConfig{
+					// 	Type: graphql.NewNonNull(graphql.String),
+					// },
+					// "updated_at": &graphql.ArgumentConfig{
+					// 	Type: graphql.NewNonNull(graphql.String),
+					// },
+				},
+				Resolve: resolver.CreateBlog,
+			},
 		},
 	})
 
 	var userRoot = graphql.NewObject(
 		graphql.ObjectConfig{
-			Name: "UserRoot",
+			Name: "AppRoot",
 			Fields: graphql.Fields{
 				"users": &graphql.Field{
 					Type:    graphql.NewList(userType),
 					Resolve: resolver.AllUserResolver,
-
-					// Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-
-					// 	// id := params.Args["id"].(string)
-					// 	// filtered := Filter(users, func(v models.User) bool {
-
-					// 	// 	return id == id
-					// 	// })
-					// 	return users, nil
-					// },
+				},
+				"blogs": &graphql.Field{
+					Type:    graphql.NewList(blogType),
+					Resolve: resolver.AllBlogsResolver,
 				},
 			},
 		},

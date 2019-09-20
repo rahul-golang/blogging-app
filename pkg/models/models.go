@@ -1,17 +1,25 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
+type Model struct {
+	ID        int `json:"id" gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
+}
+
 type User struct {
-	gorm.Model
+	Model
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"user_email"`
 	Phone     string `json:"user_phone"`
 	Username  string `json:"username"`
 	Password  string `json:"password"`
+	Blogs     []Blog `json:"blogs" gorm:"foreignkey:ID"`
 }
 
 type GetUserResp struct {
@@ -47,18 +55,25 @@ type GetAllUserResp struct {
 	User    []*User `json:"user"`
 }
 
-type Authentication struct {
-	gorm.Model
-	AuthToken    string `json:"auth_token"`
-	UserId       string `json:"user_id"`
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	AuthState    string `json:"auth_state"`
+type Blog struct {
+	Model
+	Tittle    string `json:"tittle"`
+	RelatedTo string `json:"related_to"`
+	Containt  string `json:"containt"`
+	UserID    int    `json:"user_id" gorm:"foreignkey:user_id"`
 }
 
-type Role struct {
-	gorm.Model
-	RoleName        string `json:"role_name"`
-	AccessPrivilage string `json:"cccess_privilage"`
-	UserID          []User
+type CreateBlogReq struct {
+	Blog Blog `json:"blog"`
+}
+
+type CreateBlogResp struct {
+	Message string `json:"message"`
+	Blog    *Blog  `json:"blog"`
+}
+
+type Followers struct {
+	Model
+	UserID     int `json:"user_id" `
+	FollowerID int `json:"follower_id"`
 }

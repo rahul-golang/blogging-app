@@ -38,24 +38,22 @@ func main() {
 	m.InitSchema(func(tx *gorm.DB) error {
 		err := tx.AutoMigrate(
 			&models.User{},
+			&models.Blog{},
+			&models.Followers{},
 		).Error
 		if err != nil {
 			return err
 		}
 
-		// if err := tx.Model(products_models.ProductImages{}).AddForeignKey("products_id", "products(id)", "CASCADE", "CASCADE").Error; err != nil {
-		// 	return err
-		// }
-		// if err := tx.Model(products_models.ProductDescription{}).AddForeignKey("products_id", "products(id)", "CASCADE", "CASCADE").Error; err != nil {
-		// 	return err
-		// }
-
-		// if err := tx.Model(orders_models.OrderProducts{}).AddForeignKey("orders_id", "orders (orders_id)", "CASCADE", "CASCADE").Error; err != nil {
-		// 	return err
-		// }
-		// if err := tx.Model(orders_models.Orders{}).AddForeignKey("order_status", "order_statuses(order_status_id)", "CASCADE", "CASCADE").Error; err != nil {
-		// 	return err
-		// }
+		if err := tx.Model(models.Blog{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error; err != nil {
+			return err
+		}
+		if err := tx.Model(models.Followers{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE").Error; err != nil {
+			return err
+		}
+		if err := tx.Model(models.Followers{}).AddForeignKey("follower_id", "users(id)", "CASCADE", "CASCADE").Error; err != nil {
+			return err
+		}
 
 		// all other foreign keys...
 		return nil

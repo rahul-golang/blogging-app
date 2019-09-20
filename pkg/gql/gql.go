@@ -7,27 +7,42 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-type GqlAppSchema struct {
+//AppSchema having GraphQL Schema dependancies
+type AppSchema struct {
 	GqlSchema graphql.Schema
-	//userService service.UsersService
 }
 
-// var users []models.User = []models.User{
-// 	models.User{
-// 		//	ID:        1,
-// 		Email:     "rahul.shinde@scalent.io",
-// 		FirstName: "Rahul",
-// 		LastName:  "shinde",
-// 		Phone:     "9975227706",
-// 	},
-// 	models.User{
-// 		//gorm.Model.ID: 2,
-// 		Email:     "sagar.pawar@scalent.io",
-// 		FirstName: "Sagar",
-// 		LastName:  "pawar",
-// 		Phone:     "7218969895",
-// 	},
-// }
+var blogType = graphql.NewObject(
+	graphql.ObjectConfig{
+		Name: "blog",
+		Fields: graphql.Fields{
+			"id": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"tittle": &graphql.Field{
+				Type: graphql.String,
+			},
+			"related_to": &graphql.Field{
+				Type: graphql.String,
+			},
+			"containt": &graphql.Field{
+				Type: graphql.String,
+			},
+			"user_id": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"created_at": &graphql.Field{
+				Type: graphql.DateTime,
+			},
+			"deleted_at": &graphql.Field{
+				Type: graphql.DateTime,
+			},
+			"updated_at": &graphql.Field{
+				Type: graphql.DateTime,
+			},
+		},
+	},
+)
 
 var userType = graphql.NewObject(
 	graphql.ObjectConfig{
@@ -67,8 +82,10 @@ var userType = graphql.NewObject(
 	},
 )
 
-func NewGqlAppSchema(userService service.UsersService) *GqlAppSchema {
-	resolver := NewResolver(userService)
+//NewGqlAppSchema inialize GraphQL Schema
+//Send Service dpendancies for Services to GraphQL Resolver functions
+func NewGqlAppSchema(appService service.AppService) *AppSchema {
+	resolver := NewResolver(appService)
 	fmt.Println("IN NewGqlAppSchema")
-	return &GqlAppSchema{GqlSchema: resolver.NewSchema()}
+	return &AppSchema{GqlSchema: resolver.NewSchema()}
 }

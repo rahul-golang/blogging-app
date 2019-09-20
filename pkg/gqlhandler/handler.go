@@ -9,35 +9,22 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+//GraphQlHandlers for handler Functions
 type GraphQlHandlers struct {
-	gqlAppSchema *gql.GqlAppSchema
+	gqlAppSchema *gql.AppSchema
 }
 
-func (graphQlHandlers GraphQlHandlers) GetAllUser(w http.ResponseWriter, req *http.Request) {
+// Users handler Function
+func (graphQlHandlers GraphQlHandlers) Users(w http.ResponseWriter, req *http.Request) {
+	result := graphql.Do(graphql.Params{
+		Schema:        graphQlHandlers.gqlAppSchema.GqlSchema,
+		RequestString: req.URL.Query().Get("query"),
+	})
+	json.NewEncoder(w).Encode(result)
+}
 
-	//ctx := req.Context()
-	//getAllUserResp := &models.GetAllUserResp{}
-
-	//users, err := graphQlHandlers.userService.GetAllUser(ctx)
-	// if err != nil {
-	// 	getAllUserResp.Message = err.Error()
-	// 	getAllUserResp.User = users
-	// 	json.NewEncoder(w).Encode(getAllUserResp)
-	// 	writeResponse(w, http.StatusInternalServerError)
-	// 	return
-	// }
-	//getAllUserResp.User = users
-	//log.Logger(ctx).Info("sucess")
-	// err = json.NewEncoder(w).Encode(getAllUserResp)
-	// if err != nil {
-	// 	getAllUserResp.Message = err.Error()
-	// 	getAllUserResp.User = users
-	// 	json.NewEncoder(w).Encode(getAllUserResp)
-	// 	writeResponse(w, http.StatusInternalServerError)
-	// 	return
-	// }
-	//writeResponse(w, http.StatusOK)
-
+//Blogs handler function
+func (graphQlHandlers GraphQlHandlers) Blogs(w http.ResponseWriter, req *http.Request) {
 	result := graphql.Do(graphql.Params{
 		Schema:        graphQlHandlers.gqlAppSchema.GqlSchema,
 		RequestString: req.URL.Query().Get("query"),
@@ -49,9 +36,10 @@ func writeResponse(w http.ResponseWriter, errorCode int) {
 	w.WriteHeader(errorCode)
 }
 
-func NewGraphQlHandlers(userService service.UsersService) *GraphQlHandlers {
+//NewGraphQlHandlers inits dependancies for graphQL and Handlers
+func NewGraphQlHandlers(appService service.AppService) *GraphQlHandlers {
 
-	gqlAppSchema := gql.NewGqlAppSchema(userService)
+	gqlAppSchema := gql.NewGqlAppSchema(appService)
 	return &GraphQlHandlers{gqlAppSchema: gqlAppSchema}
 
 }

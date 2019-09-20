@@ -2,35 +2,40 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"blogging-app/database"
 	"blogging-app/log"
 	"blogging-app/pkg/models"
 )
 
-//UserRepositoryInterface implimets all methods in UserRepository
-type UserRepositoryInterface interface {
-	Create(ctx context.Context, createReq models.User) (createResp *models.User, err error)
-	Get(ctx context.Context, id string) (getResp *models.User, err error)
-	Delete(ctx context.Context, id string) (deleteResp *models.DeleteUserResp, err error)
-	Update(ctx context.Context, updateReq models.User) (updateResp *models.User, err error)
-	All(ctx context.Context) (getAllResp []*models.User, err error)
+//RepositoryInterface implimets all methods in AppRepository
+type RepositoryInterface interface {
+	CreateUser(ctx context.Context, createReq models.User) (createResp *models.User, err error)
+	GetUser(ctx context.Context, id string) (getResp *models.User, err error)
+	DeleteUser(ctx context.Context, id string) (deleteResp *models.DeleteUserResp, err error)
+	UpdateUser(ctx context.Context, updateReq models.User) (updateResp *models.User, err error)
+	AllUsers(ctx context.Context) (getAllResp []*models.User, err error)
+
+	//Blog Repository FUnctions
+	CreateBlog(ctx context.Context, blogReq models.Blog) (*models.Blog, error)
+	GetAllBlogs(ctx context.Context) ([]*models.Blog, error)
 }
 
-// UserRepository **
-type UserRepository struct {
+// AppRepository **
+type AppRepository struct {
 	mysqlInterface database.MySQLClientConnInterface
 }
 
-//NewUserRepository inject dependancies of DataStore
-func NewUserRepository(mysqlInterface database.MySQLClientConnInterface) UserRepositoryInterface {
-	return &UserRepository{mysqlInterface: mysqlInterface}
+//NewAppRepository inject dependancies of DataStore
+func NewAppRepository(mysqlInterface database.MySQLClientConnInterface) RepositoryInterface {
+	return &AppRepository{mysqlInterface: mysqlInterface}
 }
 
-//Create add new record in datastore
-func (userRepository *UserRepository) Create(ctx context.Context, user models.User) (*models.User, error) {
+//CreateUser add new record in datastore
+func (appRepository *AppRepository) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
 
-	dbConn := userRepository.mysqlInterface.NewClientConnection()
+	dbConn := appRepository.mysqlInterface.NewClientConnection()
 
 	dbConn.AutoMigrate(&models.User{})
 	//createOn := time.Now().In(time.UTC)
@@ -43,12 +48,10 @@ func (userRepository *UserRepository) Create(ctx context.Context, user models.Us
 	return &user, nil
 }
 
-/**
+//GetUser serch user bu its id retun user fron database
+func (appRepository *AppRepository) GetUser(ctx context.Context, id string) (*models.User, error) {
 
- */
-func (userRepository *UserRepository) Get(ctx context.Context, id string) (*models.User, error) {
-
-	dbConn := userRepository.mysqlInterface.NewClientConnection()
+	dbConn := appRepository.mysqlInterface.NewClientConnection()
 	log.Logger(ctx).Info("in Get users repository mothod ", id)
 	user := models.User{}
 	err := dbConn.Where("id=?", id).First(&user).Error
@@ -58,8 +61,9 @@ func (userRepository *UserRepository) Get(ctx context.Context, id string) (*mode
 	return &user, nil
 }
 
-func (userRepository *UserRepository) Delete(ctx context.Context, id string) (*models.DeleteUserResp, error) {
-	dbConn := userRepository.mysqlInterface.NewClientConnection()
+// DeleteUser delete User From Database
+func (appRepository *AppRepository) DeleteUser(ctx context.Context, id string) (*models.DeleteUserResp, error) {
+	dbConn := appRepository.mysqlInterface.NewClientConnection()
 
 	err := dbConn.Where("id=?", id).Delete(&models.User{}).Error
 	if err != nil {
@@ -70,9 +74,11 @@ func (userRepository *UserRepository) Delete(ctx context.Context, id string) (*m
 		ID:      id,
 	}, nil
 }
-func (userRepository *UserRepository) Update(ctx context.Context, user models.User) (*models.User, error) {
 
-	dbConn := userRepository.mysqlInterface.NewClientConnection()
+//UpdateUser update user in database
+func (appRepository *AppRepository) UpdateUser(ctx context.Context, user models.User) (*models.User, error) {
+
+	dbConn := appRepository.mysqlInterface.NewClientConnection()
 	err := dbConn.Model(&models.User{}).Where("id=?", user.ID).Update(&user).Error
 	if err != nil {
 		return nil, err
@@ -81,9 +87,10 @@ func (userRepository *UserRepository) Update(ctx context.Context, user models.Us
 	return &user, nil
 }
 
-func (userRepository *UserRepository) All(ctx context.Context) (getAllResp []*models.User, err error) {
+//AllUsers return all Users from database
+func (appRepository *AppRepository) AllUsers(ctx context.Context) (getAllResp []*models.User, err error) {
 
-	dbConn := userRepository.mysqlInterface.NewClientConnection()
+	dbConn := appRepository.mysqlInterface.NewClientConnection()
 	//log.Logger(ctx).Info("in all users repository mothod ")
 
 	users := []*models.User{}
@@ -93,4 +100,37 @@ func (userRepository *UserRepository) All(ctx context.Context) (getAllResp []*mo
 		return nil, err
 	}
 	return users, nil
+}
+
+// CreateBlog create blog in database and retub Created Blog
+func (appRepository *AppRepository) CreateBlog(ctx context.Context, blogReq models.Blog) (*models.Blog, error) {
+
+	dbConn := appRepository.mysqlInterface.NewClientConnection()
+
+	dbConn.AutoMigrate(&models.Blog{})
+	//createOn := time.Now().In(time.UTC)
+	fmt.Println(blogReq)
+
+	d := dbConn.Create(&blogReq)
+	if d.Error != nil {
+		return nil, d.Error
+	}
+
+	return &blogReq, nil
+
+}
+
+//GetAllBlogs return all Users from database
+func (appRepository *AppRepository) GetAllBlogs(ctx context.Context) ([]*models.Blog, error) {
+
+	dbConn := appRepository.mysqlInterface.NewClientConnection()
+	//log.Logger(ctx).Info("in all users repository mothod ")
+
+	blogs := []*models.Blog{}
+	err := dbConn.Find(&blogs).Error
+	//log.Logger(ctx).Info("in all users service mothod ")
+	if err != nil {
+		return nil, err
+	}
+	return blogs, nil
 }

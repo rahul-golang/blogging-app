@@ -8,21 +8,27 @@ import (
 	"blogging-app/pkg/repository"
 )
 
-// UsersService describes the service.
-type UsersService interface {
+// AppService describes the service.
+type AppService interface {
+	// User Service Functions
 	CreateUser(ctx context.Context, createReq models.CreateUserReq) (createResp *models.CreateUserResp, err error)
 	GetAllUser(ctx context.Context) (allRecordResp []*models.User, err error)
 	UpdateUser(ctx context.Context, upadteReq models.User) (updateResp *models.User, err error)
 	DeleteUser(ctx context.Context, id string) (deleteResp *models.DeleteUserResp, err error)
 	GetUser(ctx context.Context, id string) (createResp *models.User, err error)
+
+	// Blog Services Functions
+
+	CreateBlog(ctx context.Context, blogReq models.Blog) (blogResp *models.Blog, err error)
+	GetAllBlogs(ctx context.Context) ([]*models.Blog, error)
 }
 
-type basicUsersService struct {
-	userRepositoryInterface repository.UserRepositoryInterface
+type basicAppService struct {
+	repositoryInterface repository.RepositoryInterface
 }
 
-func (b *basicUsersService) CreateUser(ctx context.Context, createReq models.CreateUserReq) (*models.CreateUserResp, error) {
-	user, err := b.userRepositoryInterface.Create(ctx, createReq.User)
+func (b *basicAppService) CreateUser(ctx context.Context, createReq models.CreateUserReq) (*models.CreateUserResp, error) {
+	user, err := b.repositoryInterface.CreateUser(ctx, createReq.User)
 	if err != nil {
 		return nil, err
 	}
@@ -32,29 +38,49 @@ func (b *basicUsersService) CreateUser(ctx context.Context, createReq models.Cre
 		User:    user,
 	}, err
 }
-func (b *basicUsersService) GetAllUser(ctx context.Context) (allRecordResp []*models.User, err error) {
+func (b *basicAppService) GetAllUser(ctx context.Context) (allRecordResp []*models.User, err error) {
 	fmt.Println("in all users service mothod")
 	//log.Logger(ctx).Info("in all users service mothod ")
 
-	allRecordResp, err = b.userRepositoryInterface.All(ctx)
+	allRecordResp, err = b.repositoryInterface.AllUsers(ctx)
 	fmt.Println(allRecordResp)
 	return allRecordResp, err
 }
-func (b *basicUsersService) UpdateUser(ctx context.Context, upadteReq models.User) (updateResp *models.User, err error) {
-	updateResp, err = b.userRepositoryInterface.Update(ctx, upadteReq)
+func (b *basicAppService) UpdateUser(ctx context.Context, upadteReq models.User) (updateResp *models.User, err error) {
+	updateResp, err = b.repositoryInterface.UpdateUser(ctx, upadteReq)
 	return updateResp, err
 }
-func (b *basicUsersService) DeleteUser(ctx context.Context, id string) (deleteResp *models.DeleteUserResp, err error) {
-	deleteResp, err = b.userRepositoryInterface.Delete(ctx, id)
+func (b *basicAppService) DeleteUser(ctx context.Context, id string) (deleteResp *models.DeleteUserResp, err error) {
+	deleteResp, err = b.repositoryInterface.DeleteUser(ctx, id)
 	return deleteResp, err
 }
-func (b *basicUsersService) GetUser(ctx context.Context, id string) (createResp *models.User, err error) {
+func (b *basicAppService) GetUser(ctx context.Context, id string) (createResp *models.User, err error) {
 	fmt.Println("id", id)
-	createResp, err = b.userRepositoryInterface.Get(ctx, id)
+	createResp, err = b.repositoryInterface.GetUser(ctx, id)
 	return createResp, err
 }
 
-// NewBasicUsersService returns a naive, stateless implementation of UsersService.
-func NewBasicUsersService(userRepositoryInterface repository.UserRepositoryInterface) UsersService {
-	return &basicUsersService{userRepositoryInterface: userRepositoryInterface}
+func (b *basicAppService) CreateBlog(ctx context.Context, blogReq models.Blog) (blogResp *models.Blog, err error) {
+
+	blog, err := b.repositoryInterface.CreateBlog(ctx, blogReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return blog, err
+}
+
+func (b *basicAppService) GetAllBlogs(ctx context.Context) ([]*models.Blog, error) {
+	allRecordResp, err := b.repositoryInterface.GetAllBlogs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return allRecordResp, err
+
+}
+
+// NewBasicAppService returns a naive, stateless implementation of AppService.
+func NewBasicAppService(repositoryInterface repository.RepositoryInterface) AppService {
+	return &basicAppService{repositoryInterface: repositoryInterface}
 }
