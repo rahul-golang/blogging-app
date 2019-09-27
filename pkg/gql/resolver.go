@@ -77,8 +77,8 @@ func (resolver Resolver) CreateBlog(params graphql.ResolveParams) (interface{}, 
 
 //AllBlogsResolver return all user Resolver
 func (resolver Resolver) AllBlogsResolver(param graphql.ResolveParams) (interface{}, error) {
-	fmt.Println("IN AllUserResolver")
-	fmt.Println(resolver.appService)
+	//fmt.Println("IN AllUserResolver")
+	//fmt.Println(resolver.appService)
 	blogs, err := resolver.appService.GetAllBlogs(param.Context)
 
 	if err != nil {
@@ -86,6 +86,29 @@ func (resolver Resolver) AllBlogsResolver(param graphql.ResolveParams) (interfac
 		return nil, err
 	}
 	return blogs, nil
+}
+
+//AllBlogsResolver return all user Resolver
+func (resolver Resolver) GetUserProfile(param graphql.ResolveParams) (interface{}, error) {
+	//fmt.Println("IN GetUserProfile")
+
+	//blogs, err := resolver.appService.GetUserProfile(param.Context, param.Args["id"].(string))
+
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return nil, err
+	// }
+	// return blogs, nil
+
+	user := models.UserProfile{
+		User: models.User{
+			FirstName: "rahul",
+			LastName:  "shinde",
+			Email:     "sasas@dda.com",
+		},
+	}
+
+	return user, nil
 }
 
 //NewSchema creates GraphQL Schema for Application
@@ -177,6 +200,10 @@ func (resolver *Resolver) NewSchema() graphql.Schema {
 				"blogs": &graphql.Field{
 					Type:    graphql.NewList(blogType),
 					Resolve: resolver.AllBlogsResolver,
+				},
+				"userprofile": &graphql.Field{
+					Type:    userType,
+					Resolve: resolver.GetUserProfile,
 				},
 			},
 		},

@@ -16,6 +16,7 @@ type RepositoryInterface interface {
 	DeleteUser(ctx context.Context, id string) (deleteResp *models.DeleteUserResp, err error)
 	UpdateUser(ctx context.Context, updateReq models.User) (updateResp *models.User, err error)
 	AllUsers(ctx context.Context) (getAllResp []*models.User, err error)
+	GetUserProfile(ctx context.Context, id string) (*models.UserProfile, error)
 
 	//Blog Repository FUnctions
 	CreateBlog(ctx context.Context, blogReq models.Blog) (*models.Blog, error)
@@ -93,13 +94,34 @@ func (appRepository *AppRepository) AllUsers(ctx context.Context) (getAllResp []
 	dbConn := appRepository.mysqlInterface.NewClientConnection()
 	//log.Logger(ctx).Info("in all users repository mothod ")
 
-	users := []*models.User{}
-	err = dbConn.Find(&users).Error
+	users := []models.User{}
+	//err = dbConn.Model(&models.User{}).Association("blogs").Find(&users).Error
+
+	//err = dbConn.Model(model.User{}).Find(&users).Error
+	err = dbConn.Debug().Preload("Blogs").Find(&users).Error
+	//err = dbConn.Model(&models.User{}).Association("blogs").Find(&users).Error
+
 	//log.Logger(ctx).Info("in all users service mothod ")
+	//err = dbConn.Find(&users).Error
+	fmt.Println(users)
 	if err != nil {
 		return nil, err
 	}
-	return users, nil
+	return getAllResp, nil
+}
+
+//GetUserProfile returns user profile data
+func (appRepository *AppRepository) GetUserProfile(ctx context.Context, id string) (*models.UserProfile, error) {
+
+	dbConn := appRepository.mysqlInterface.NewClientConnection()
+	fmt.Println(id)
+	//log.Logger(ctx).Info("in Get users repository mothod ", id)
+	userProfile := models.UserProfile{}
+	err := dbConn.Where("id=?", id).First(&userProfile).Error
+	if err != nil {
+		return nil, err
+	}
+	return &userProfile, nil
 }
 
 // CreateBlog create blog in database and retub Created Blog

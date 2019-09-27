@@ -21,6 +21,8 @@ type AppService interface {
 
 	CreateBlog(ctx context.Context, blogReq models.Blog) (blogResp *models.Blog, err error)
 	GetAllBlogs(ctx context.Context) ([]*models.Blog, error)
+
+	GetUserProfile(ctx context.Context, id string) (*models.UserProfile, error)
 }
 
 type basicAppService struct {
@@ -58,6 +60,12 @@ func (b *basicAppService) GetUser(ctx context.Context, id string) (createResp *m
 	fmt.Println("id", id)
 	createResp, err = b.repositoryInterface.GetUser(ctx, id)
 	return createResp, err
+}
+
+func (b *basicAppService) GetUserProfile(ctx context.Context, id string) (userProfile *models.UserProfile, err error) {
+	fmt.Println("id", id)
+	userProfile, err = b.repositoryInterface.GetUserProfile(ctx, id)
+	return userProfile, err
 }
 
 func (b *basicAppService) CreateBlog(ctx context.Context, blogReq models.Blog) (blogResp *models.Blog, err error) {
