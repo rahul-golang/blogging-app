@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"blogging-app/pkg/handler"
 	"errors"
 	"flag"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 	"blogging-app/database"
 	"blogging-app/log"
 	"blogging-app/pkg/endpoints"
-	"blogging-app/pkg/gqlhandler"
 	"blogging-app/pkg/repository"
 	"blogging-app/pkg/service"
 
@@ -37,11 +37,19 @@ var (
 	//DebugAddressFlag cli flag name for debug address
 	DebugAddressFlag = "debug-addr"
 
-	httpAddressEnvVar = "HTTP-ADDR"
+	//HTTPAddressEnvVar **
+	HTTPAddressEnvVar = "HTTP-ADDR"
 
+	//MongoDBHostEnvVar **
 	MongoDBHostEnvVar = "MONGO-DB-HOST"
+
+	//MongoDBUserEnvVar **
 	MongoDBUserEnvVar = "MONGO-DB-USER"
+
+	//MongoDBPassEnvVar **
 	MongoDBPassEnvVar = "MONGO-DB-PASS"
+
+	//MongoDBAddrEnvVar **
 	MongoDBAddrEnvVar = "MONGO-DB-ADDR"
 )
 
@@ -49,8 +57,8 @@ var (
 // all* supported transports, but we do it here for demonstration purposes.
 var fs = flag.NewFlagSet("Blogging-App", flag.ExitOnError)
 
-//HttpAddr http Address
-var HttpAddr = fs.String(HTTPAddressFlag, "8080", "HTTP listen address defaults to 8080")
+//HTTPAddr http Address
+var HTTPAddr = fs.String(HTTPAddressFlag, "8080", "HTTP listen address defaults to 8080")
 
 //MongoDBHost mongodb  hostname
 var MongoDBHost = fs.String(MongoDBHostFlag, "", "Hostname for mongoDB")
@@ -68,6 +76,7 @@ func init() {
 	flag.Parse()
 }
 
+//GetEnviromentVariables **
 func GetEnviromentVariables() {
 
 	//get mongoDBHost from enviroment variables
@@ -95,12 +104,13 @@ func GetEnviromentVariables() {
 	}
 
 	//get httpAddr from enviroments variables
-	var httpAddr = os.Getenv(httpAddressEnvVar)
-	if len(httpAddr) > 0 && (HttpAddr == nil || len(*HttpAddr) == 0) {
-		HttpAddr = &httpAddr
+	var httpAddr = os.Getenv(HTTPAddressEnvVar)
+	if len(httpAddr) > 0 && (HTTPAddr == nil || len(*HTTPAddr) == 0) {
+		HTTPAddr = &httpAddr
 	}
 }
 
+//ValidateFlags ckecks the flags and update
 func ValidateFlags() error {
 	GetEnviromentVariables()
 	flagMessage := "is a requird flag"
@@ -113,19 +123,29 @@ func ValidateFlags() error {
 	return nil
 }
 
+//Run **
 func Run() {
 
 	router := mux.NewRouter()
 
-	//Injected dependancies
-	//dataStoreInterface := database.NewMySQLClientConn()
-	dataStoreInterface := database.NewMongoDBConn()
-	appRepositoryInterface := repository.NewAppRepository(dataStoreInterface)
-	appServiceInterface := service.NewBasicAppService(appRepositoryInterface)
-	restHandler := gqlhandler.NewGraphQlHandlers(appServiceInterface)
+	//MongoDB Dependancy
+	dataStore := database.NewMongoDBConn()
+
+	//User Services dependancies
+	userRepository := repository.NewUserRepositoryImpl(dataStore)
+	userService := service.NewUserServiceImpl(userRepository)
+	userHandler := handler.NewUserHandlerImpl(userService)
+
+	endpoints.NewUserRoute(router, userHandler)
+
+	//Blog Services dependancies
+	blogRepository := repository.NewBlogRepositoryImpl(dataStore)
+	blogService := service.NewBlogServiceImpl(blogRepository)
+	blogHandler := handler.NewBlogHandlersImpl(blogService)
+	endpoints.NewBlogRoute(router, blogHandler)
+
 	router.Use(loggingMiddleware)
-	endpoints.NewAppRoute(router, restHandler)
-	fmt.Println(http.ListenAndServe(":"+httpAddr, router))
+	fmt.Println(http.ListenAndServe(":"+*HTTPAddr, router))
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

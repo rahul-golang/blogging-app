@@ -1,0 +1,2 @@
+time="2019-11-14T14:39:32+05:30" level=info msg="&{ObjectID(\"5dcd19cc55dc9da789674f71\")}" file="C:/g/src/blogging-app/pkg/repository/user_repository.go" function="blogging-app/pkg/repository.(*UserRepositoryImpl).CreateUser" line=46 requestid=
+time="2019-11-14T14:40:31+05:30" level=info msg="&{ObjectID(\"5dcd1a0755dc9da789674f72\")}" file="C:/g/src/blogging-app/pkg/repository/user_repository.go" function="blogging-app/pkg/repository.(*UserRepositoryImpl).CreateUser" line=46 requestid=

@@ -49,6 +49,7 @@ func Logger(ctx context.Context) *log.Entry {
 }
 
 // WithRqID returns a context which knows its request ID
+//creates new requestId Assigns to context
 func WithRqID(ctx context.Context) context.Context {
 	return context.WithValue(ctx, REQUESTID, randNumberRunes(10))
 }
