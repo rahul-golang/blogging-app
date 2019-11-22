@@ -118,12 +118,32 @@ func (userRepositoryImpl *UserRepositoryImpl) UpdateUser(ctx context.Context, fi
 	mongoClient := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
 	defer mongoClient.Disconnect(ctx)
 
-	log.Logger(ctx).Info("Error in finding mongo users : %v", mongoClient)
 	//db and collection
 	collection := mongoClient.Database("bloggingapp").Collection("users")
 
+	update := bson.M{}
+	//Checking for update only those values who has been requested for update
+	//
+	if len(user.FirstName) > 0 {
+		update["first_name"] = user.FirstName
+	}
+	if len(user.LastName) > 0 {
+		update["last_name"] = user.LastName
+	}
+	if len(user.Email) > 0 {
+		update["user_email"] = user.Email
+	}
+	if len(user.Password) > 0 {
+		update["password"] = user.Password
+	}
+	if len(user.Phone) > 0 {
+		update["user_phone"] = user.Phone
+	}
+	update["times.updatedat"] = time.Now()
+
+	data := bson.M{"$set": update}
 	//fetch data from mongo database on tahe basis of filters
-	result, err := collection.UpdateOne(ctx, filter, user, updateOption)
+	result, err := collection.UpdateOne(ctx, filter, data, updateOption)
 	if err != nil {
 		log.Logger(ctx).Errorf("Error in finding mongo users : %v", err)
 		return nil, err

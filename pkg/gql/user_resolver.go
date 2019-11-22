@@ -128,22 +128,28 @@ func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
 						Type: graphql.NewNonNull(graphql.String),
 					},
 					"first_name": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.String),
+						Type:         graphql.String,
+						DefaultValue: "",
 					},
 					"last_name": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.String),
+						Type:         graphql.String,
+						DefaultValue: "",
 					},
 					"email": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.String),
+						Type:         graphql.String,
+						DefaultValue: "",
 					},
 					"phone": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.String),
+						Type:         graphql.String,
+						DefaultValue: "",
 					},
 					"username": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.String),
+						Type:         graphql.String,
+						DefaultValue: "",
 					},
 					"password": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.String),
+						Type:         graphql.String,
+						DefaultValue: "",
 					},
 				},
 				Resolve: resolver.UpdateUser,
