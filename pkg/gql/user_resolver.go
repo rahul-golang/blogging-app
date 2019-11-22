@@ -96,9 +96,6 @@ func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
 				Type: userType,
 				Args: graphql.FieldConfigArgument{
 
-					// "id": &graphql.ArgumentConfig{
-					// 	Type: graphql.NewNonNull(graphql.Int),
-					// },
 					"first_name": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
 					},
