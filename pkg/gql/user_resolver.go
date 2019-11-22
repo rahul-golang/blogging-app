@@ -120,7 +120,6 @@ func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
 			"updateuser": &graphql.Field{
 				Type: userType,
 				Args: graphql.FieldConfigArgument{
-
 					"id": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
 					},

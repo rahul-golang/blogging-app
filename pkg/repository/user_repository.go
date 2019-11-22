@@ -18,7 +18,7 @@ import (
 type UserRepository interface {
 	CreateUser(context.Context, models.User) (*models.User, error)
 	GetUsers(context.Context, bson.M) ([]models.User, error)
-	DeleteUser(context.Context, bson.M) (*models.User, error)
+	DeleteUser(context.Context, bson.M) (interface{}, error)
 	UpdateUser(context.Context, bson.M, models.User) (*models.User, error)
 }
 
@@ -103,9 +103,25 @@ func (userRepositoryImpl *UserRepositoryImpl) GetUsers(ctx context.Context, filt
 }
 
 // DeleteUser delete User From Database
-func (userRepositoryImpl *UserRepositoryImpl) DeleteUser(ctx context.Context, filter bson.M) (*models.User, error) {
+func (userRepositoryImpl *UserRepositoryImpl) DeleteUser(ctx context.Context, filter bson.M) (interface{}, error) {
 
-	return nil, nil
+	//specify delete optons if any
+	deleteOptions := options.Delete()
+
+	//  mongo client connection
+	mongoClient := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer mongoClient.Disconnect(ctx)
+
+	//db and collection
+	collection := mongoClient.Database("bloggingapp").Collection("users")
+
+	//fetch data from mongo database on tahe basis of filters
+	result, err := collection.DeleteOne(ctx, filter, deleteOptions)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error in Deleting mongo users : %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 //UpdateUser update user in database
