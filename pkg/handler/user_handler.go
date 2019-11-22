@@ -19,6 +19,7 @@ func (userHandlersImpl UserHandlersImpl) Users(w http.ResponseWriter, req *http.
 	result := graphql.Do(graphql.Params{
 		Schema:        userHandlersImpl.userSchema.UserSchema,
 		RequestString: req.URL.Query().Get("query"),
+		Context:       req.Context(),
 	})
 	json.NewEncoder(w).Encode(result)
 }

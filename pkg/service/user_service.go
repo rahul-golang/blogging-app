@@ -2,7 +2,8 @@ package service
 
 import (
 	"context"
-	"fmt"
+
+	"go.mongodb.org/mongo-driver/bson"
 
 	"blogging-app/pkg/models"
 	"blogging-app/pkg/repository"
@@ -12,9 +13,9 @@ import (
 type UserService interface {
 	// User Service Functions
 	CreateUser(context.Context, models.User) (*models.User, error)
-	GetAllUser(context.Context) ([]*models.User, error)
+	GetAllUser(context.Context) ([]models.User, error)
 	UpdateUser(context.Context, models.User) (*models.User, error)
-	DeleteUser(context.Context, string) (*models.DeleteUserResp, error)
+	DeleteUser(context.Context, string) (*models.User, error)
 	GetUser(context.Context, string) (*models.User, error)
 	GetUserProfile(context.Context, string) (*models.UserProfile, error)
 }
@@ -30,48 +31,50 @@ func NewUserServiceImpl(userRepository repository.UserRepository) UserService {
 }
 
 //CreateUser return created user response
-func (b *UserServiceImpl) CreateUser(ctx context.Context, createReq models.CreateUserReq) (*models.CreateUserResp, error) {
-	user, err := b.userRepository.CreateUser(ctx, createReq.User)
+func (b *UserServiceImpl) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
+	resp, err := b.userRepository.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 
-	return &models.CreateUserResp{
-		Message: "record created sucessfully",
-		User:    user,
-	}, err
+	return resp, err
 }
 
 //GetAllUser retuns users
-func (b *UserServiceImpl) GetAllUser(ctx context.Context) (allRecordResp []*models.User, err error) {
+func (b *UserServiceImpl) GetAllUser(ctx context.Context) ([]models.User, error) {
 
-	allRecordResp, err = b.userRepository.AllUsers(ctx)
-	fmt.Println(allRecordResp)
-	return allRecordResp, err
+	users, err := b.userRepository.GetUsers(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 //UpdateUser update and returns user
-func (b *UserServiceImpl) UpdateUser(ctx context.Context, upadteReq models.User) (updateResp *models.User, err error) {
-	updateResp, err = b.userRepository.UpdateUser(ctx, upadteReq)
+func (b *UserServiceImpl) UpdateUser(ctx context.Context, req models.User) (*models.User, error) {
+
+	filter := bson.M{"_id": bson.M{"$eq": req.ID}}
+	updateResp, err := b.userRepository.UpdateUser(ctx, filter, req)
 	return updateResp, err
 }
 
 //DeleteUser delets an user
-func (b *UserServiceImpl) DeleteUser(ctx context.Context, id string) (deleteResp *models.DeleteUserResp, err error) {
-	deleteResp, err = b.userRepository.DeleteUser(ctx, id)
+func (b *UserServiceImpl) DeleteUser(ctx context.Context, id string) (deleteResp *models.User, err error) {
+
+	deleteResp, err = b.userRepository.DeleteUser(ctx, bson.M{})
 	return deleteResp, err
 }
 
 //GetUser return user
-func (b *UserServiceImpl) GetUser(ctx context.Context, id string) (createResp *models.User, err error) {
-	fmt.Println("id", id)
-	createResp, err = b.userRepository.GetUser(ctx, id)
-	return createResp, err
+func (b *UserServiceImpl) GetUser(ctx context.Context, id string) (*models.User, error) {
+
+	createResp, err := b.userRepository.GetUsers(ctx, bson.M{})
+	return &createResp[0], err
 }
 
 // GetUserProfile return user profile
 func (b *UserServiceImpl) GetUserProfile(ctx context.Context, id string) (userProfile *models.UserProfile, err error) {
-	fmt.Println("id", id)
-	userProfile, err = b.userRepository.GetUserProfile(ctx, id)
-	return userProfile, err
+	// fmt.Println("id", id)
+	// userProfile, err = b.userRepository.GetUserProfile(ctx, id)
+	return nil, nil
 }

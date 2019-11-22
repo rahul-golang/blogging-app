@@ -1,7 +1,7 @@
 package models
 
 type Blog struct {
-	Model
+	Times
 	Tittle    string `json:"tittle"`
 	RelatedTo string `json:"related_to"`
 	Containt  string `json:"containt"`

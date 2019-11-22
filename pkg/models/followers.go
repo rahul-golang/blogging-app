@@ -1,7 +1,7 @@
 package models
 
 type Followers struct {
-	Model
+	Times
 	UserID     int `json:"user_id" `
 	FollowerID int `json:"follower_id"`
 }

@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"blogging-app/database"
 	"blogging-app/log"
@@ -13,12 +16,10 @@ import (
 
 //UserRepository implimets all methods in UserRepository
 type UserRepository interface {
-	CreateUser(ctx context.Context, createReq models.User) (createResp *models.User, err error)
-	GetUser(ctx context.Context, id string) (getResp *models.User, err error)
-	DeleteUser(ctx context.Context, id string) (deleteResp *models.DeleteUserResp, err error)
-	UpdateUser(ctx context.Context, updateReq models.User) (updateResp *models.User, err error)
-	AllUsers(ctx context.Context) (getAllResp []*models.User, err error)
-	GetUserProfile(ctx context.Context, id string) (*models.UserProfile, error)
+	CreateUser(context.Context, models.User) (*models.User, error)
+	GetUsers(context.Context, bson.M) ([]models.User, error)
+	DeleteUser(context.Context, bson.M) (*models.User, error)
+	UpdateUser(context.Context, bson.M, models.User) (*models.User, error)
 }
 
 //UserRepositoryImpl **
@@ -34,11 +35,20 @@ func NewUserRepositoryImpl(mongoConn database.MongoDBConnInterface) UserReposito
 //CreateUser add new record in datastore
 func (userRepositoryImpl *UserRepositoryImpl) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
 
+	//  mongo client connection
 	client := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
 	defer client.Disconnect(ctx)
+
+	//Update Times Feilds When Created and Updated
+	timeNow := time.Now()
+	user.CreatedAt = timeNow
+	user.UpdatedAt = timeNow
+
+	//  mongo client Collection and Db
 	collection := client.Database("bloggingapp").Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	res, err := collection.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
@@ -53,37 +63,72 @@ func (userRepositoryImpl *UserRepositoryImpl) CreateUser(ctx context.Context, us
 	return &user, nil
 }
 
-//GetUser serch user bu its id retun user fron database
-func (userRepositoryImpl *UserRepositoryImpl) GetUser(ctx context.Context, id string) (*models.User, error) {
-	return nil, nil
+//GetUsers serch user and returns listof users
+func (userRepositoryImpl *UserRepositoryImpl) GetUsers(ctx context.Context, filter bson.M) ([]models.User, error) {
+	var users []models.User
+
+	findOptiond := options.Find()
+
+	//  mongo client connection
+	mongoClient := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer mongoClient.Disconnect(ctx)
+
+	//db and collection
+	collection := mongoClient.Database("bloggingapp").Collection("users")
+
+	//fetch data from mongo database on tahe basis of filters
+	cur, err := collection.Find(ctx, filter, findOptiond)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error in finding mongo users : %v", err)
+		return nil, err
+	}
+
+	//if cursor having more documents its will itterate over a single documnets
+	for cur.Next(ctx) {
+		var user models.User
+		if err = cur.Decode(&user); err != nil {
+			log.Logger(ctx).Errorf("Error in decoding cursor into user model  : %v ", err)
+		}
+		users = append(users, user)
+
+	}
+
+	if err := cur.Err(); err != nil {
+		log.Logger(ctx).Errorf("Error in finding mongo users : %v", err)
+
+		return nil, err
+	}
+
+	return users, nil
 }
 
 // DeleteUser delete User From Database
-func (userRepositoryImpl *UserRepositoryImpl) DeleteUser(ctx context.Context, id string) (*models.DeleteUserResp, error) {
+func (userRepositoryImpl *UserRepositoryImpl) DeleteUser(ctx context.Context, filter bson.M) (*models.User, error) {
+
 	return nil, nil
 }
 
 //UpdateUser update user in database
-func (userRepositoryImpl *UserRepositoryImpl) UpdateUser(ctx context.Context, user models.User) (*models.User, error) {
-	return nil, nil
-}
+func (userRepositoryImpl *UserRepositoryImpl) UpdateUser(ctx context.Context, filter bson.M, user models.User) (*models.User, error) {
 
-//AllUsers return all Users from database
-func (userRepositoryImpl *UserRepositoryImpl) AllUsers(ctx context.Context) (getAllResp []*models.User, err error) {
-	return nil, nil
-}
+	//update options
+	updateOption := options.Update()
 
-//GetUserProfile returns user profile data
-func (userRepositoryImpl *UserRepositoryImpl) GetUserProfile(ctx context.Context, id string) (*models.UserProfile, error) {
-	return nil, nil
-}
+	//  mongo client connection
+	mongoClient := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer mongoClient.Disconnect(ctx)
 
-// CreateBlog create blog in database and retub Created Blog
-func (userRepositoryImpl *UserRepositoryImpl) CreateBlog(ctx context.Context, blogReq models.Blog) (*models.Blog, error) {
-	return nil, nil
-}
+	log.Logger(ctx).Info("Error in finding mongo users : %v", mongoClient)
+	//db and collection
+	collection := mongoClient.Database("bloggingapp").Collection("users")
 
-//GetAllBlogs return all Users from database
-func (userRepositoryImpl *UserRepositoryImpl) GetAllBlogs(ctx context.Context) ([]*models.Blog, error) {
+	//fetch data from mongo database on tahe basis of filters
+	result, err := collection.UpdateOne(ctx, filter, user, updateOption)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error in finding mongo users : %v", err)
+		return nil, err
+	}
+
+	fmt.Printf("Matched %v documents and updated %v documents.\n", result.MatchedCount, result.ModifiedCount)
 	return nil, nil
 }
