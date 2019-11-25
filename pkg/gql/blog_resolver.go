@@ -1,9 +1,12 @@
 package gql
 
 import (
+	"blogging-app/log"
 	"blogging-app/pkg/models"
 	"blogging-app/pkg/service"
 	"fmt"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/graphql-go/graphql"
 )
@@ -16,26 +19,39 @@ type BlogResolver struct {
 //NewBlogResolver inject blogService dependancies
 //helps to call  all the app Services
 func NewBlogResolver(blogService service.BlogService) *BlogResolver {
-	fmt.Println("IN NewResolver")
 	return &BlogResolver{blogService: blogService}
 }
 
 //CreateBlog blogResolver function call Service layer create function
 func (blogResolver BlogResolver) CreateBlog(params graphql.ResolveParams) (interface{}, error) {
 	var blog models.Blog
+	var err error
 
-	//
-	blog.UserID = params.Args["user_id"].(int)
+	//get context for reading request specific attributes
+	var ctx = params.Context
+
+	//get userId from resolver Params
+	strID := params.Args["user_id"].(string)
+
+	//String to hex conversion
+	blog.UserID, err = primitive.ObjectIDFromHex(strID)
+	if err != nil {
+		log.Logger(ctx).Error("Error in userid type conversion String to Hex : ", err)
+		return nil, err
+	}
+
 	blog.Tittle = params.Args["tittle"].(string)
 	blog.RelatedTo = params.Args["related_to"].(string)
 	blog.Containt = params.Args["containt"].(string)
+	//blog.Likes = params.Args["likes"]
 
+	//call to blogservice method
 	blogResp, err := blogResolver.blogService.CreateBlog(params.Context, blog)
 	if err != nil {
-		fmt.Println(err)
+		log.Logger(ctx).Error(err)
 		return nil, err
 	}
-	fmt.Println(blogResp)
+
 	return blogResp, nil
 }
 
@@ -63,9 +79,6 @@ func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
 			"createblog": &graphql.Field{
 				Type: blogType,
 				Args: graphql.FieldConfigArgument{
-					// "id": &graphql.ArgumentConfig{
-					// 	Type: graphql.NewNonNull(graphql.Int),
-					// },
 					"tittle": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
 					},
@@ -78,15 +91,6 @@ func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
 					"user_id": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
 					},
-					// "created_at": &graphql.ArgumentConfig{
-					// 	Type: graphql.NewNonNull(graphql.String),
-					// },
-					// "deleted_at": &graphql.ArgumentConfig{
-					// 	Type: graphql.NewNonNull(graphql.String),
-					// },
-					// "updated_at": &graphql.ArgumentConfig{
-					// 	Type: graphql.NewNonNull(graphql.String),
-					// },
 				},
 				Resolve: blogResolver.CreateBlog,
 			},
@@ -111,8 +115,7 @@ func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
 		Mutation: rootBlogMutation,
 	})
 	if err != nil {
-		fmt.Println("return :", err)
-		panic("error")
+		panic("error in blog schema creation")
 	}
 	return schema
 

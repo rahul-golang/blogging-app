@@ -1,18 +1,20 @@
 package models
 
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+//Blog related information is here
 type Blog struct {
-	Times
-	Tittle    string `json:"tittle"`
-	RelatedTo string `json:"related_to"`
-	Containt  string `json:"containt"`
-	UserID    int    `json:"user_id" gorm:"foreignkey:user_id"`
-}
-
-type CreateBlogReq struct {
-	Blog Blog `json:"blog"`
-}
-
-type CreateBlogResp struct {
-	Message string `json:"message"`
-	Blog    *Blog  `json:"blog"`
+	ID        primitive.ObjectID `json:"id" bson:"id,omitempty"`
+	Tittle    string             `json:"tittle" bson:"tittle"`
+	RelatedTo string             `json:"related_to" bson:"related_to"`
+	Containt  string             `json:"containt" bson:"containt"`
+	UserID    primitive.ObjectID `json:"user_id" bson:"user_id"`
+	Likes     int                `json:"likes" bson:"likes"`
+	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
+	DeletedAt *time.Time         `json:"deleted_at" bson:"deleted_at"`
 }

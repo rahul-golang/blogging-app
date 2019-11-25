@@ -2,7 +2,6 @@ package gql
 
 import (
 	"blogging-app/pkg/service"
-	"fmt"
 
 	"github.com/graphql-go/graphql"
 )
@@ -16,7 +15,6 @@ type BlogSchema struct {
 //Send Service dpendancies for Services to GraphQL Resolver functions
 func NewBlogSchema(blogService service.BlogService) *BlogSchema {
 	resolver := NewBlogResolver(blogService)
-	fmt.Println("IN NewGqlAppSchema")
 	return &BlogSchema{BlogSchema: resolver.NewBlogSchemaImpl()}
 }
 
@@ -37,6 +35,9 @@ var blogType = graphql.NewObject(
 				Type: graphql.String,
 			},
 			"user_id": &graphql.Field{
+				Type: graphql.String,
+			},
+			"likes": &graphql.Field{
 				Type: graphql.Int,
 			},
 			"created_at": &graphql.Field{

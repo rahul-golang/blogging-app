@@ -19,6 +19,7 @@ func (blogHandlersImpl BlogHandlersImpl) Blogs(w http.ResponseWriter, req *http.
 	result := graphql.Do(graphql.Params{
 		Schema:        blogHandlersImpl.blogSchema.BlogSchema,
 		RequestString: req.URL.Query().Get("query"),
+		Context:       req.Context(),
 	})
 	json.NewEncoder(w).Encode(result)
 }

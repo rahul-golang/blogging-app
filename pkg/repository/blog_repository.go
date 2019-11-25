@@ -3,7 +3,7 @@ package repository
 import (
 	"blogging-app/log"
 	"context"
-	"fmt"
+	"time"
 
 	"blogging-app/database"
 	"blogging-app/pkg/models"
@@ -30,14 +30,25 @@ func NewBlogRepositoryImpl(mongoConn database.MongoDBConnInterface) BlogReposito
 
 // CreateBlog create blog in database and retub Created Blog
 func (blogRepositoryImpl *BlogRepositoryImpl) CreateBlog(ctx context.Context, blog models.Blog) (interface{}, error) {
+
+	//mongo client connection
 	mongoCon := blogRepositoryImpl.mongoConn.NewMongoConn(ctx)
-	result, err := mongoCon.Database("bloggingapp").Collection("blog").InsertOne(ctx, blog)
+	defer mongoCon.Disconnect(ctx)
+
+	//Update Times Feilds When Created and Updated
+	timeNow := time.Now()
+	blog.CreatedAt = timeNow
+	blog.UpdatedAt = timeNow
+
+	//database and collection
+	collection := mongoCon.Database("bloggingapp").Collection("blog")
+
+	//insert opration on mongo collection
+	result, err := collection.InsertOne(ctx, blog)
 	if err != nil {
-		//	log.Logger(ctx).Info("in all users service mothod ")
-		fmt.Println(err)
+		log.Logger(ctx).Error(err)
 		return nil, err
 	}
-
 	return result.InsertedID, nil
 }
 

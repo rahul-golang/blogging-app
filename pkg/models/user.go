@@ -2,6 +2,7 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
+//User **
 type User struct {
 	Times
 	ID        primitive.ObjectID `json:"id" bson:"id,omitempty"`

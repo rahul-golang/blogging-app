@@ -104,6 +104,7 @@ func (resolver UserResolver) DeleteUser(params graphql.ResolveParams) (interface
 	return resp, nil
 }
 
+//GetUserByID reads id from resolver and send it to get user service
 func (resolver UserResolver) GetUserByID(params graphql.ResolveParams) (interface{}, error) {
 
 	//Get Context from resolver params

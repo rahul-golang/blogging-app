@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"blogging-app/log"
 	"blogging-app/pkg/models"
 	"blogging-app/pkg/repository"
 )
@@ -29,8 +30,10 @@ func NewBlogServiceImpl(blogRepository repository.BlogRepository) BlogService {
 //CreateBlog create blog and return id
 func (b *BlogServiceImpl) CreateBlog(ctx context.Context, blog models.Blog) (interface{}, error) {
 
+	log.Logger(ctx).Info("Create Blog Request : ", blog)
 	resp, err := b.blogRepository.CreateBlog(ctx, blog)
 	if err != nil {
+		log.Logger(ctx).Error(err)
 		return nil, err
 	}
 
