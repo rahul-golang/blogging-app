@@ -104,6 +104,22 @@ func (resolver UserResolver) DeleteUser(params graphql.ResolveParams) (interface
 	return resp, nil
 }
 
+func (resolver UserResolver) GetUserByID(params graphql.ResolveParams) (interface{}, error) {
+
+	//Get Context from resolver params
+	ctx := params.Context
+
+	id := params.Args["id"].(string)
+
+	//call to get by id service
+	resp, err := resolver.userService.GetUser(ctx, id)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error from Service : %v ", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
 //NewUserSchemaImpl creates GraphQL Schema for User Schema
 //excecutes only once when application starts
 func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
@@ -186,8 +202,19 @@ func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
 			Name: "UserRoot",
 			Fields: graphql.Fields{
 				"users": &graphql.Field{
-					Type:    graphql.NewList(userType),
-					Resolve: resolver.AllUserResolver,
+					Type:        graphql.NewList(userType),
+					Description: "Get list of Users",
+					Resolve:     resolver.AllUserResolver,
+				},
+				"user": &graphql.Field{
+					Type:        userType,
+					Description: "Get user by id",
+					Args: graphql.FieldConfigArgument{
+						"id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.String),
+						},
+					},
+					Resolve: resolver.GetUserByID,
 				},
 			},
 		},

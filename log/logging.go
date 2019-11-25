@@ -14,7 +14,9 @@ var logger *log.Logger
 
 const REQUESTID = "requestID"
 
+//Initialization for logs
 func init() {
+
 	logger = log.New()
 	logger.SetLevel(log.TraceLevel)
 	logger.Formatter = &log.TextFormatter{}
@@ -24,6 +26,7 @@ func init() {
 func Logger(ctx context.Context) *log.Entry {
 	var depth = 1
 	var requestid string
+
 	if ctxRqID, ok := ctx.Value(REQUESTID).(string); ok {
 		requestid = ctxRqID
 	}

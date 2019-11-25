@@ -89,7 +89,7 @@ func (b *UserServiceImpl) DeleteUser(ctx context.Context, stringId string) (inte
 	//call repository and return
 	resp, err := b.userRepository.DeleteUser(ctx, filter)
 	if err != nil {
-		log.Logger(ctx).Errorf("Error in stingId To Hex conversion %v", err)
+		log.Logger(ctx).Error(err)
 		return nil, err
 	}
 	return resp, nil
@@ -97,13 +97,23 @@ func (b *UserServiceImpl) DeleteUser(ctx context.Context, stringId string) (inte
 }
 
 //GetUser return user
-func (b *UserServiceImpl) GetUser(ctx context.Context, id string) (*models.User, error) {
+func (b *UserServiceImpl) GetUser(ctx context.Context, stringId string) (*models.User, error) {
 
-	log.Logger(ctx).Info("GetUser: ", id)
+	log.Logger(ctx).Info("GetUser : ", stringId)
+	//Created filter to find and update
+	id, err := primitive.ObjectIDFromHex(stringId)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error in stingId To Hex conversion %v", err)
+		return nil, err
+	}
 	//Created filter to find and update
 	filter := bson.M{"_id": bson.M{"$eq": id}}
 	createResp, err := b.userRepository.GetUsers(ctx, filter)
-	return &createResp[0], err
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return &createResp[0], nil
 }
 
 // GetUserProfile return user profile
