@@ -4,6 +4,8 @@ import (
 	"blogging-app/log"
 	"context"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"go.mongodb.org/mongo-driver/bson"
 
 	"blogging-app/pkg/models"
@@ -16,7 +18,7 @@ type UserService interface {
 	CreateUser(context.Context, models.User) (*models.User, error)
 	GetAllUser(context.Context) ([]models.User, error)
 	UpdateUser(context.Context, models.User) (*models.User, error)
-	DeleteUser(context.Context, string) (*models.User, error)
+	DeleteUser(context.Context, string) (interface{}, error)
 	GetUser(context.Context, string) (*models.User, error)
 	GetUserProfile(context.Context, string) (*models.UserProfile, error)
 }
@@ -72,12 +74,26 @@ func (b *UserServiceImpl) UpdateUser(ctx context.Context, req models.User) (*mod
 }
 
 //DeleteUser delets an user
-func (b *UserServiceImpl) DeleteUser(ctx context.Context, id string) (deleteResp *models.User, err error) {
-	log.Logger(ctx).Info("DeleteUser: ", id)
+func (b *UserServiceImpl) DeleteUser(ctx context.Context, stringId string) (interface{}, error) {
+	log.Logger(ctx).Info("DeleteUser: ", stringId)
 	//Created filter to find and update
+	id, err := primitive.ObjectIDFromHex(stringId)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error in stingId To Hex conversion %v", err)
+		return nil, err
+	}
+	//filter to delete user by id
+	//TODO create more optinal filters e.g serch by name, email, mobile, fname_lname
 	filter := bson.M{"_id": bson.M{"$eq": id}}
-	deleteResp, err = b.userRepository.DeleteUser(ctx, filter)
-	return deleteResp, err
+
+	//call repository and return
+	resp, err := b.userRepository.DeleteUser(ctx, filter)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error in stingId To Hex conversion %v", err)
+		return nil, err
+	}
+	return resp, nil
+
 }
 
 //GetUser return user

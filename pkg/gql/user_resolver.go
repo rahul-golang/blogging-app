@@ -36,6 +36,7 @@ func (resolver UserResolver) AllUserResolver(param graphql.ResolveParams) (inter
 
 //CreateUser resolver function to create user Record
 func (resolver UserResolver) CreateUser(params graphql.ResolveParams) (interface{}, error) {
+
 	var user models.User
 	user.FirstName = params.Args["first_name"].(string)
 	user.LastName = params.Args["last_name"].(string)
@@ -83,6 +84,24 @@ func (resolver UserResolver) UpdateUser(params graphql.ResolveParams) (interface
 	}
 
 	return users, nil
+}
+
+//DeleteUser reads id from request and pass it to delete service
+func (resolver UserResolver) DeleteUser(params graphql.ResolveParams) (interface{}, error) {
+
+	//Get context from request
+	ctx := params.Context
+
+	//Read id to delete the record
+	id := params.Args["id"].(string)
+
+	//Call to delete service
+	resp, err := resolver.userService.DeleteUser(ctx, id)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error from Service : %v ", err)
+		return nil, err
+	}
+	return resp, nil
 }
 
 //NewUserSchemaImpl creates GraphQL Schema for User Schema
@@ -149,6 +168,15 @@ func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
 					},
 				},
 				Resolve: resolver.UpdateUser,
+			},
+			"deleteuser": &graphql.Field{
+				Type: userType,
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: resolver.DeleteUser,
 			},
 		},
 	})
