@@ -117,6 +117,23 @@ func (blogResolver BlogResolver) DeleteBlog(params graphql.ResolveParams) (inter
 	return result, nil
 }
 
+//GetBlog resolver function
+func (blogResolver BlogResolver) GetBlog(params graphql.ResolveParams) (interface{}, error) {
+
+	//get context for reading request specific attributes
+	var ctx = params.Context
+
+	//get userId from resolver Params
+	strID := params.Args["id"].(string)
+
+	result, err := blogResolver.blogService.GetBlog(ctx, strID)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return result, nil
+}
+
 //NewBlogSchemaImpl creates GraphQL Schema for Application
 //excecutes only once when application starts
 func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
@@ -188,6 +205,15 @@ func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
 				"blogs": &graphql.Field{
 					Type:    graphql.NewList(blogType),
 					Resolve: blogResolver.AllBlogsResolver,
+				},
+				"blog": &graphql.Field{
+					Type: blogType,
+					Args: graphql.FieldConfigArgument{
+						"id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.String),
+						},
+					},
+					Resolve: blogResolver.GetBlog,
 				},
 			},
 		},

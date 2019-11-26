@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"blogging-app/log"
 	"blogging-app/pkg/models"
@@ -20,6 +21,7 @@ type BlogService interface {
 	GetAllBlogs(context.Context) ([]models.Blog, error)
 	UpdateBlog(context.Context, models.Blog) (interface{}, error)
 	DeleteBlog(context.Context, string) (interface{}, error)
+	GetBlog(context.Context, string) (interface{}, error)
 }
 
 //BlogServiceImpl implemts all the BlogService
@@ -98,4 +100,33 @@ func (b *BlogServiceImpl) DeleteBlog(ctx context.Context, strID string) (interfa
 	}
 	return result, nil
 
+}
+
+//GetBlog creates filter and pass it to repository
+func (b *BlogServiceImpl) GetBlog(ctx context.Context, strID string) (interface{}, error) {
+	log.Logger(ctx).Info("Get Blog Request ID : ", strID)
+
+	//String to hex conversion
+	id, err := primitive.ObjectIDFromHex(strID)
+	if err != nil {
+		log.Logger(ctx).Error("Error in blogId type conversion String to Hex : ", err)
+		return nil, err
+	}
+
+	//mongo filter to Delete  blog
+	filter := bson.M{"_id": bson.M{"$eq": id}}
+
+	result, err := b.blogRepository.FindBlogs(ctx, filter)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+
+	}
+
+	if len(result) <= 0 {
+		log.Logger(ctx).Error("No Blog Found")
+		return nil, errors.New("No Blog Found")
+	}
+
+	return result[0], nil
 }
