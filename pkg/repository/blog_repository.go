@@ -15,7 +15,7 @@ import (
 //BlogRepository implimets all methods in BlogRepositoryImpl
 type BlogRepository interface {
 	CreateBlog(context.Context, models.Blog) (interface{}, error)
-	GetAllBlogs(context.Context) ([]*models.Blog, error)
+	FindBlogs(context.Context, bson.M) ([]models.Blog, error)
 }
 
 // BlogRepositoryImpl **
@@ -52,17 +52,24 @@ func (blogRepositoryImpl *BlogRepositoryImpl) CreateBlog(ctx context.Context, bl
 	return result.InsertedID, nil
 }
 
-//GetAllBlogs return all Users from database
-func (blogRepositoryImpl *BlogRepositoryImpl) GetAllBlogs(ctx context.Context) ([]*models.Blog, error) {
-	blogs := []models.Blog{}
+//FindBlogs return all Users from database
+func (blogRepositoryImpl *BlogRepositoryImpl) FindBlogs(ctx context.Context, filter bson.M) ([]models.Blog, error) {
+
+	var blogs []models.Blog
 
 	//pass these options to find Method
 	findOption := options.Find()
 
-	cur, err := blogRepositoryImpl.mongoConn.NewMongoConn(ctx).Database("bloggingapp").Collection("blog").Find(ctx, bson.M{}, findOption)
+	//mongo connection
+	mongoConn := blogRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer mongoConn.Disconnect(ctx)
 
+	//collection
+	collection := mongoConn.Database("bloggingapp").Collection("blog")
+	cur, err := collection.Find(ctx, filter, findOption)
 	if err != nil {
-		log.Logger(ctx).Info("Get All Users Methosd ")
+		log.Logger(ctx).Error(err)
+		return nil, err
 	}
 
 	//finding out multiple documents return a cursur
@@ -71,10 +78,12 @@ func (blogRepositoryImpl *BlogRepositoryImpl) GetAllBlogs(ctx context.Context) (
 		blog := models.Blog{}
 		err := cur.Decode(&blog)
 		if err != nil {
-			log.Logger(ctx).Info("Get All Users Methosd ")
+			log.Logger(ctx).Error(err)
+			return nil, err
 		}
+		//append all blog to blogs
 		blogs = append(blogs, blog)
 	}
 
-	return nil, nil
+	return blogs, nil
 }

@@ -8,7 +8,7 @@ import (
 
 //Blog related information is here
 type Blog struct {
-	ID        primitive.ObjectID `json:"id" bson:"id,omitempty"`
+	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Tittle    string             `json:"tittle" bson:"tittle"`
 	RelatedTo string             `json:"related_to" bson:"related_to"`
 	Containt  string             `json:"containt" bson:"containt"`

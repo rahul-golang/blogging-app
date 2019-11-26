@@ -4,7 +4,6 @@ import (
 	"blogging-app/log"
 	"blogging-app/pkg/models"
 	"blogging-app/pkg/service"
-	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -57,12 +56,13 @@ func (blogResolver BlogResolver) CreateBlog(params graphql.ResolveParams) (inter
 
 //AllBlogsResolver return all user BlogResolver
 func (blogResolver BlogResolver) AllBlogsResolver(param graphql.ResolveParams) (interface{}, error) {
-	//fmt.Println("IN AllUserResolver")
-	//fmt.Println(blogResolver.blogService)
-	blogs, err := blogResolver.blogService.GetAllBlogs(param.Context)
 
+	//get request context for request specific values
+	ctx := param.Context
+	//call blogservice methods
+	blogs, err := blogResolver.blogService.GetAllBlogs(ctx)
 	if err != nil {
-		fmt.Println(err)
+		log.Logger(ctx).Error(err)
 		return nil, err
 	}
 	return blogs, nil

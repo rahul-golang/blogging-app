@@ -6,6 +6,8 @@ import (
 	"blogging-app/log"
 	"blogging-app/pkg/models"
 	"blogging-app/pkg/repository"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // BlogService describes the blog services service.
@@ -14,7 +16,7 @@ type BlogService interface {
 	// Blog Services Functions
 
 	CreateBlog(context.Context, models.Blog) (interface{}, error)
-	GetAllBlogs(context.Context) ([]*models.Blog, error)
+	GetAllBlogs(context.Context) ([]models.Blog, error)
 }
 
 //BlogServiceImpl implemts all the BlogService
@@ -41,12 +43,17 @@ func (b *BlogServiceImpl) CreateBlog(ctx context.Context, blog models.Blog) (int
 }
 
 //GetAllBlogs retun slice of blogs
-func (b *BlogServiceImpl) GetAllBlogs(ctx context.Context) ([]*models.Blog, error) {
-	allRecordResp, err := b.blogRepository.GetAllBlogs(ctx)
+func (b *BlogServiceImpl) GetAllBlogs(ctx context.Context) ([]models.Blog, error) {
+
+	log.Logger(ctx).Info("Get ALL Blogs Request")
+
+	//TODO:  Add limit and Offset
+	//mongo filter to find all blogs
+	filter := bson.M{}
+	resp, err := b.blogRepository.FindBlogs(ctx, filter)
 	if err != nil {
+		log.Logger(ctx).Error(err)
 		return nil, err
 	}
-
-	return allRecordResp, err
-
+	return resp, err
 }
