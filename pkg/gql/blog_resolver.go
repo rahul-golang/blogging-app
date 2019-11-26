@@ -68,6 +68,38 @@ func (blogResolver BlogResolver) AllBlogsResolver(param graphql.ResolveParams) (
 	return blogs, nil
 }
 
+//UpdateBlog update blog
+func (blogResolver BlogResolver) UpdateBlog(params graphql.ResolveParams) (interface{}, error) {
+	var blog models.Blog
+	var err error
+
+	//get context for reading request specific attributes
+	var ctx = params.Context
+
+	//get userId from resolver Params
+	strID := params.Args["id"].(string)
+
+	//String to hex conversion
+	blog.ID, err = primitive.ObjectIDFromHex(strID)
+	if err != nil {
+		log.Logger(ctx).Error("Error in userid type conversion String to Hex : ", err)
+		return nil, err
+	}
+
+	blog.Tittle = params.Args["tittle"].(string)
+	blog.RelatedTo = params.Args["related_to"].(string)
+	blog.Containt = params.Args["containt"].(string)
+	blog.Likes = params.Args["likes"].(int)
+
+	//call to blogservice method
+	blogResp, err := blogResolver.blogService.UpdateBlog(params.Context, blog)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return blogResp, nil
+}
+
 //NewBlogSchemaImpl creates GraphQL Schema for Application
 //excecutes only once when application starts
 func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
@@ -75,10 +107,10 @@ func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
 	rootBlogMutation := graphql.NewObject(graphql.ObjectConfig{
 		Name: "Mutation",
 		Fields: graphql.Fields{
-
 			"createblog": &graphql.Field{
 				Type: blogType,
 				Args: graphql.FieldConfigArgument{
+
 					"tittle": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
 					},
@@ -93,6 +125,31 @@ func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
 					},
 				},
 				Resolve: blogResolver.CreateBlog,
+			},
+			"updateblog": &graphql.Field{
+				Type: blogType,
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"tittle": &graphql.ArgumentConfig{
+						Type:         graphql.String,
+						DefaultValue: "",
+					},
+					"related_to": &graphql.ArgumentConfig{
+						Type:         graphql.String,
+						DefaultValue: "",
+					},
+					"containt": &graphql.ArgumentConfig{
+						Type:         graphql.String,
+						DefaultValue: "",
+					},
+					"likes": &graphql.ArgumentConfig{
+						Type:         graphql.Int,
+						DefaultValue: 0,
+					},
+				},
+				Resolve: blogResolver.UpdateBlog,
 			},
 		},
 	})

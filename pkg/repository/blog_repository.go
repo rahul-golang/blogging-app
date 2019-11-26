@@ -16,6 +16,7 @@ import (
 type BlogRepository interface {
 	CreateBlog(context.Context, models.Blog) (interface{}, error)
 	FindBlogs(context.Context, bson.M) ([]models.Blog, error)
+	UpdateBlog(context.Context, bson.M, models.Blog) (interface{}, error)
 }
 
 // BlogRepositoryImpl **
@@ -29,7 +30,8 @@ func NewBlogRepositoryImpl(mongoConn database.MongoDBConnInterface) BlogReposito
 }
 
 // CreateBlog create blog in database and retub Created Blog
-func (blogRepositoryImpl *BlogRepositoryImpl) CreateBlog(ctx context.Context, blog models.Blog) (interface{}, error) {
+func (blogRepositoryImpl *BlogRepositoryImpl) CreateBlog(ctx context.Context,
+	blog models.Blog) (interface{}, error) {
 
 	//mongo client connection
 	mongoCon := blogRepositoryImpl.mongoConn.NewMongoConn(ctx)
@@ -53,7 +55,8 @@ func (blogRepositoryImpl *BlogRepositoryImpl) CreateBlog(ctx context.Context, bl
 }
 
 //FindBlogs return all Users from database
-func (blogRepositoryImpl *BlogRepositoryImpl) FindBlogs(ctx context.Context, filter bson.M) ([]models.Blog, error) {
+func (blogRepositoryImpl *BlogRepositoryImpl) FindBlogs(ctx context.Context,
+	filter bson.M) ([]models.Blog, error) {
 
 	var blogs []models.Blog
 
@@ -86,4 +89,54 @@ func (blogRepositoryImpl *BlogRepositoryImpl) FindBlogs(ctx context.Context, fil
 	}
 
 	return blogs, nil
+}
+
+//UpdateBlog upadets presented values into blog
+func (blogRepositoryImpl *BlogRepositoryImpl) UpdateBlog(ctx context.Context, filter bson.M,
+	blog models.Blog) (interface{}, error) {
+
+	//mongo client connection
+	mongoCon := blogRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer mongoCon.Disconnect(ctx)
+
+	//database and collection
+	collection := mongoCon.Database("bloggingapp").Collection("blog")
+
+	//update documnet
+	updateDoc := bson.M{}
+
+	//Final Update Object
+	data := bson.M{}
+
+	//like are incrimented by one
+	if blog.Likes != 0 {
+		data["$inc"] = bson.M{"likes": 1}
+	}
+	//set to  new tittle if any
+	if len(blog.Tittle) > 0 {
+		updateDoc["tittle"] = blog.Tittle
+	}
+	//set to  new value if any
+	if len(blog.RelatedTo) > 0 {
+		updateDoc["related_to"] = blog.RelatedTo
+	}
+
+	//set to  new value if any
+	if len(blog.Containt) > 0 {
+		updateDoc["containt"] = blog.Containt
+	}
+
+	//add updated time of documnets
+	updateDoc["updated_at"] = time.Now()
+
+	//final data to update
+	data["$set"] = updateDoc
+
+	//insert opration on mongo collection
+	result, err := collection.UpdateOne(ctx, filter, data)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return result, nil
 }

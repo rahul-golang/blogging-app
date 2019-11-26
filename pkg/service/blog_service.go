@@ -17,6 +17,7 @@ type BlogService interface {
 
 	CreateBlog(context.Context, models.Blog) (interface{}, error)
 	GetAllBlogs(context.Context) ([]models.Blog, error)
+	UpdateBlog(context.Context, models.Blog) (interface{}, error)
 }
 
 //BlogServiceImpl implemts all the BlogService
@@ -51,6 +52,21 @@ func (b *BlogServiceImpl) GetAllBlogs(ctx context.Context) ([]models.Blog, error
 	//mongo filter to find all blogs
 	filter := bson.M{}
 	resp, err := b.blogRepository.FindBlogs(ctx, filter)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return resp, err
+}
+
+func (b *BlogServiceImpl) UpdateBlog(ctx context.Context, blog models.Blog) (interface{}, error) {
+
+	log.Logger(ctx).Info("Get ALL Blogs Request")
+
+	//TODO:  Add limit and Offset
+	//mongo filter to find all blogs
+	filter := bson.M{"_id": bson.M{"$eq": blog.ID}}
+	resp, err := b.blogRepository.UpdateBlog(ctx, filter, blog)
 	if err != nil {
 		log.Logger(ctx).Error(err)
 		return nil, err
