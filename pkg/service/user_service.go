@@ -74,10 +74,10 @@ func (b *UserServiceImpl) UpdateUser(ctx context.Context, req models.User) (*mod
 }
 
 //DeleteUser delets an user
-func (b *UserServiceImpl) DeleteUser(ctx context.Context, stringId string) (interface{}, error) {
-	log.Logger(ctx).Info("DeleteUser: ", stringId)
+func (b *UserServiceImpl) DeleteUser(ctx context.Context, strID string) (interface{}, error) {
+	log.Logger(ctx).Info("DeleteUser: ", strID)
 	//Created filter to find and update
-	id, err := primitive.ObjectIDFromHex(stringId)
+	id, err := primitive.ObjectIDFromHex(strID)
 	if err != nil {
 		log.Logger(ctx).Errorf("Error in stingId To Hex conversion %v", err)
 		return nil, err
@@ -97,11 +97,11 @@ func (b *UserServiceImpl) DeleteUser(ctx context.Context, stringId string) (inte
 }
 
 //GetUser return user
-func (b *UserServiceImpl) GetUser(ctx context.Context, stringId string) (*models.User, error) {
+func (b *UserServiceImpl) GetUser(ctx context.Context, strID string) (*models.User, error) {
 
-	log.Logger(ctx).Info("GetUser : ", stringId)
+	log.Logger(ctx).Info("GetUser : ", strID)
 	//Created filter to find and update
-	id, err := primitive.ObjectIDFromHex(stringId)
+	id, err := primitive.ObjectIDFromHex(strID)
 	if err != nil {
 		log.Logger(ctx).Errorf("Error in stingId To Hex conversion %v", err)
 		return nil, err

@@ -17,6 +17,7 @@ type BlogRepository interface {
 	CreateBlog(context.Context, models.Blog) (interface{}, error)
 	FindBlogs(context.Context, bson.M) ([]models.Blog, error)
 	UpdateBlog(context.Context, bson.M, models.Blog) (interface{}, error)
+	DeleteBlog(context.Context, bson.M) (interface{}, error)
 }
 
 // BlogRepositoryImpl **
@@ -134,6 +135,27 @@ func (blogRepositoryImpl *BlogRepositoryImpl) UpdateBlog(ctx context.Context, fi
 
 	//insert opration on mongo collection
 	result, err := collection.UpdateOne(ctx, filter, data)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return result, nil
+}
+
+//DeleteBlog delete blog from mongodb
+func (blogRepositoryImpl *BlogRepositoryImpl) DeleteBlog(ctx context.Context, filter bson.M) (interface{}, error) {
+	//specify delete optons if any
+	deleteOptions := options.Delete()
+
+	//  mongo client connection
+	mongoClient := blogRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer mongoClient.Disconnect(ctx)
+
+	//db and collection
+	collection := mongoClient.Database("bloggingapp").Collection("blog")
+
+	//Delete data from mongo database on tahe basis of filters
+	result, err := collection.DeleteOne(ctx, filter, deleteOptions)
 	if err != nil {
 		log.Logger(ctx).Error(err)
 		return nil, err

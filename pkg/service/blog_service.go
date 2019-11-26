@@ -8,6 +8,7 @@ import (
 	"blogging-app/pkg/repository"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // BlogService describes the blog services service.
@@ -18,6 +19,7 @@ type BlogService interface {
 	CreateBlog(context.Context, models.Blog) (interface{}, error)
 	GetAllBlogs(context.Context) ([]models.Blog, error)
 	UpdateBlog(context.Context, models.Blog) (interface{}, error)
+	DeleteBlog(context.Context, string) (interface{}, error)
 }
 
 //BlogServiceImpl implemts all the BlogService
@@ -59,6 +61,7 @@ func (b *BlogServiceImpl) GetAllBlogs(ctx context.Context) ([]models.Blog, error
 	return resp, err
 }
 
+//UpdateBlog create filter to update documnet and sent to repository
 func (b *BlogServiceImpl) UpdateBlog(ctx context.Context, blog models.Blog) (interface{}, error) {
 
 	log.Logger(ctx).Info("Get ALL Blogs Request")
@@ -72,4 +75,27 @@ func (b *BlogServiceImpl) UpdateBlog(ctx context.Context, blog models.Blog) (int
 		return nil, err
 	}
 	return resp, err
+}
+
+//DeleteBlog create delete filter and pass it to repository
+func (b *BlogServiceImpl) DeleteBlog(ctx context.Context, strID string) (interface{}, error) {
+	log.Logger(ctx).Info("Delete Blog Request ID : ", strID)
+
+	//String to hex conversion
+	id, err := primitive.ObjectIDFromHex(strID)
+	if err != nil {
+		log.Logger(ctx).Error("Error in blogId type conversion String to Hex : ", err)
+		return nil, err
+	}
+
+	//mongo filter to Delete  blog
+	filter := bson.M{"_id": bson.M{"$eq": id}}
+
+	result, err := b.blogRepository.DeleteBlog(ctx, filter)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return result, nil
+
 }

@@ -35,7 +35,7 @@ func (blogResolver BlogResolver) CreateBlog(params graphql.ResolveParams) (inter
 	//String to hex conversion
 	blog.UserID, err = primitive.ObjectIDFromHex(strID)
 	if err != nil {
-		log.Logger(ctx).Error("Error in userid type conversion String to Hex : ", err)
+		log.Logger(ctx).Error("Error in blogId type conversion String to Hex : ", err)
 		return nil, err
 	}
 
@@ -82,7 +82,7 @@ func (blogResolver BlogResolver) UpdateBlog(params graphql.ResolveParams) (inter
 	//String to hex conversion
 	blog.ID, err = primitive.ObjectIDFromHex(strID)
 	if err != nil {
-		log.Logger(ctx).Error("Error in userid type conversion String to Hex : ", err)
+		log.Logger(ctx).Error("Error in blogId type conversion String to Hex : ", err)
 		return nil, err
 	}
 
@@ -98,6 +98,23 @@ func (blogResolver BlogResolver) UpdateBlog(params graphql.ResolveParams) (inter
 		return nil, err
 	}
 	return blogResp, nil
+}
+
+//DeleteBlog Resolver function
+func (blogResolver BlogResolver) DeleteBlog(params graphql.ResolveParams) (interface{}, error) {
+
+	//get context for reading request specific attributes
+	var ctx = params.Context
+
+	//get userId from resolver Params
+	strID := params.Args["id"].(string)
+
+	result, err := blogResolver.blogService.DeleteBlog(ctx, strID)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return result, nil
 }
 
 //NewBlogSchemaImpl creates GraphQL Schema for Application
@@ -150,6 +167,15 @@ func (blogResolver *BlogResolver) NewBlogSchemaImpl() graphql.Schema {
 					},
 				},
 				Resolve: blogResolver.UpdateBlog,
+			},
+			"deleteblog": &graphql.Field{
+				Type: userType,
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: blogResolver.DeleteBlog,
 			},
 		},
 	})
