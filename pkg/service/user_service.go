@@ -21,6 +21,7 @@ type UserService interface {
 	DeleteUser(context.Context, string) (interface{}, error)
 	GetUser(context.Context, string) (*models.User, error)
 	CreateFollower(context.Context, models.Followers) (interface{}, error)
+	DeleteFollower(context.Context, models.Followers) (interface{}, error)
 
 	//TODO
 	GetUserProfile(context.Context, string) (*models.UserProfile, error)
@@ -118,11 +119,32 @@ func (b *UserServiceImpl) GetUser(ctx context.Context, strID string) (*models.Us
 	}
 	return &createResp[0], nil
 }
+
+//CreateFollower pass req to repository
 func (b *UserServiceImpl) CreateFollower(ctx context.Context, followers models.Followers) (interface{}, error) {
 
 	log.Logger(ctx).Info("CreateFollower : ", followers)
 
 	resp, err := b.userRepository.CreateFollower(ctx, followers)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+
+	return resp, err
+}
+
+//DeleteFollower creates filter and pass request to repository
+func (b *UserServiceImpl) DeleteFollower(ctx context.Context, followers models.Followers) (interface{}, error) {
+
+	log.Logger(ctx).Info("DeleteFollower : ", followers)
+
+	//query filter
+	filter := bson.M{"$and": []bson.M{
+		{"user_id": bson.M{"$eq": followers.UserID}},
+		{"follower_id": bson.M{"$eq": followers.FollowerID}},
+	}}
+	resp, err := b.userRepository.DeleteFollower(ctx, filter)
 	if err != nil {
 		log.Logger(ctx).Error(err)
 		return nil, err

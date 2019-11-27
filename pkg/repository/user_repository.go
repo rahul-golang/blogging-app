@@ -21,6 +21,7 @@ type UserRepository interface {
 	DeleteUser(context.Context, bson.M) (interface{}, error)
 	UpdateUser(context.Context, bson.M, models.User) (*models.User, error)
 	CreateFollower(context.Context, models.Followers) (interface{}, error)
+	DeleteFollower(context.Context, bson.M) (interface{}, error)
 }
 
 //UserRepositoryImpl **
@@ -204,4 +205,26 @@ func (userRepositoryImpl *UserRepositoryImpl) CreateFollower(ctx context.Context
 
 	return id, nil
 
+}
+
+//DeleteFollower delete follower enties from database
+func (userRepositoryImpl *UserRepositoryImpl) DeleteFollower(ctx context.Context,
+	filter bson.M) (interface{}, error) {
+	//specify delete optons if any
+	deleteOptions := options.Delete()
+
+	//  mongo client connection
+	mongoClient := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer mongoClient.Disconnect(ctx)
+
+	//db and collection
+	collection := mongoClient.Database("bloggingapp").Collection("followers")
+
+	//fetch data from mongo database on tahe basis of filters
+	result, err := collection.DeleteOne(ctx, filter, deleteOptions)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return result, nil
 }
