@@ -61,6 +61,29 @@ var userType = graphql.NewObject(
 	},
 )
 
+var followerType = graphql.NewObject(
+	graphql.ObjectConfig{
+		Name: "followers",
+		Fields: graphql.Fields{
+			"user_id": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"follower_id": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"created_at": &graphql.Field{
+				Type: graphql.DateTime,
+			},
+			"deleted_at": &graphql.Field{
+				Type: graphql.DateTime,
+			},
+			"updated_at": &graphql.Field{
+				Type: graphql.DateTime,
+			},
+		},
+	},
+)
+
 var userProfileType = graphql.NewObject(
 	graphql.ObjectConfig{
 		Name: "userprofile",

@@ -121,6 +121,39 @@ func (resolver UserResolver) GetUserByID(params graphql.ResolveParams) (interfac
 	return resp, nil
 }
 
+//CreateFollower
+func (resolver UserResolver) CreateFollower(params graphql.ResolveParams) (interface{}, error) {
+
+	var follower models.Followers
+	var err error
+
+	//Get Context from resolver params
+	ctx := params.Context
+
+	userID := params.Args["user_id"].(string)
+	followerID := params.Args["follower_id"].(string)
+
+	follower.UserID, err = primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+
+	follower.FollowerID, err = primitive.ObjectIDFromHex(followerID)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	//call to get by id service
+	resp, err := resolver.userService.CreateFollower(ctx, follower)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error from Service : %v ", err)
+		return nil, err
+	}
+	return resp, nil
+
+}
+
 //NewUserSchemaImpl creates GraphQL Schema for User Schema
 //excecutes only once when application starts
 func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
@@ -194,6 +227,18 @@ func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
 					},
 				},
 				Resolve: resolver.DeleteUser,
+			},
+			"createfollower": &graphql.Field{
+				Type: followerType,
+				Args: graphql.FieldConfigArgument{
+					"user_id": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+					"follower_id": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: resolver.CreateFollower,
 			},
 		},
 	})

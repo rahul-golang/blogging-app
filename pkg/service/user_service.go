@@ -20,6 +20,9 @@ type UserService interface {
 	UpdateUser(context.Context, models.User) (*models.User, error)
 	DeleteUser(context.Context, string) (interface{}, error)
 	GetUser(context.Context, string) (*models.User, error)
+	CreateFollower(context.Context, models.Followers) (interface{}, error)
+
+	//TODO
 	GetUserProfile(context.Context, string) (*models.UserProfile, error)
 }
 
@@ -115,8 +118,21 @@ func (b *UserServiceImpl) GetUser(ctx context.Context, strID string) (*models.Us
 	}
 	return &createResp[0], nil
 }
+func (b *UserServiceImpl) CreateFollower(ctx context.Context, followers models.Followers) (interface{}, error) {
+
+	log.Logger(ctx).Info("CreateFollower : ", followers)
+
+	resp, err := b.userRepository.CreateFollower(ctx, followers)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+
+	return resp, err
+}
 
 // GetUserProfile return user profile
+//TODO
 func (b *UserServiceImpl) GetUserProfile(ctx context.Context, id string) (userProfile *models.UserProfile, err error) {
 	// fmt.Println("id", id)
 	// userProfile, err = b.userRepository.GetUserProfile(ctx, id)

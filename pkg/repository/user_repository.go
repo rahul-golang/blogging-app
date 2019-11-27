@@ -20,6 +20,7 @@ type UserRepository interface {
 	GetUsers(context.Context, bson.M) ([]models.User, error)
 	DeleteUser(context.Context, bson.M) (interface{}, error)
 	UpdateUser(context.Context, bson.M, models.User) (*models.User, error)
+	CreateFollower(context.Context, models.Followers) (interface{}, error)
 }
 
 //UserRepositoryImpl **
@@ -33,7 +34,8 @@ func NewUserRepositoryImpl(mongoConn database.MongoDBConnInterface) UserReposito
 }
 
 //CreateUser add new record in datastore
-func (userRepositoryImpl *UserRepositoryImpl) CreateUser(ctx context.Context, user models.User) (*models.User, error) {
+func (userRepositoryImpl *UserRepositoryImpl) CreateUser(ctx context.Context,
+	user models.User) (*models.User, error) {
 
 	//  mongo client connection
 	client := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
@@ -64,7 +66,8 @@ func (userRepositoryImpl *UserRepositoryImpl) CreateUser(ctx context.Context, us
 }
 
 //GetUsers serch user and returns listof users
-func (userRepositoryImpl *UserRepositoryImpl) GetUsers(ctx context.Context, filter bson.M) ([]models.User, error) {
+func (userRepositoryImpl *UserRepositoryImpl) GetUsers(ctx context.Context,
+	filter bson.M) ([]models.User, error) {
 	var users []models.User
 
 	findOptiond := options.Find()
@@ -103,7 +106,8 @@ func (userRepositoryImpl *UserRepositoryImpl) GetUsers(ctx context.Context, filt
 }
 
 // DeleteUser delete User From Database
-func (userRepositoryImpl *UserRepositoryImpl) DeleteUser(ctx context.Context, filter bson.M) (interface{}, error) {
+func (userRepositoryImpl *UserRepositoryImpl) DeleteUser(ctx context.Context,
+	filter bson.M) (interface{}, error) {
 
 	//specify delete optons if any
 	deleteOptions := options.Delete()
@@ -125,7 +129,8 @@ func (userRepositoryImpl *UserRepositoryImpl) DeleteUser(ctx context.Context, fi
 }
 
 //UpdateUser update user in database
-func (userRepositoryImpl *UserRepositoryImpl) UpdateUser(ctx context.Context, filter bson.M, user models.User) (*models.User, error) {
+func (userRepositoryImpl *UserRepositoryImpl) UpdateUser(ctx context.Context,
+	filter bson.M, user models.User) (*models.User, error) {
 
 	//update options
 	updateOption := options.Update()
@@ -167,4 +172,36 @@ func (userRepositoryImpl *UserRepositoryImpl) UpdateUser(ctx context.Context, fi
 
 	fmt.Printf("Matched %v documents and updated %v documents.\n", result.MatchedCount, result.ModifiedCount)
 	return nil, nil
+}
+
+//CreateFollower creates users follower collection
+func (userRepositoryImpl *UserRepositoryImpl) CreateFollower(ctx context.Context,
+	followers models.Followers) (interface{}, error) {
+
+	//  mongo client connection
+	client := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer client.Disconnect(ctx)
+
+	//Update Times Feilds When Created and Updated
+	timeNow := time.Now()
+	followers.CreatedAt = timeNow
+	followers.UpdatedAt = timeNow
+
+	//mongo client Collection and Db
+	collection := client.Database("bloggingapp").Collection("followers")
+	res, err := collection.InsertOne(ctx, followers)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+
+	//assertion interface type to primitive.ObjectID
+	id, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+
+	return id, nil
+
 }
