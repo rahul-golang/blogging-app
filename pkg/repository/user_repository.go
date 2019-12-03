@@ -22,6 +22,7 @@ type UserRepository interface {
 	UpdateUser(context.Context, bson.M, models.User) (*models.User, error)
 	CreateFollower(context.Context, models.Followers) (interface{}, error)
 	DeleteFollower(context.Context, bson.M) (interface{}, error)
+	GetFollower(context.Context, bson.M) ([]models.User, error)
 }
 
 //UserRepositoryImpl **
@@ -227,4 +228,82 @@ func (userRepositoryImpl *UserRepositoryImpl) DeleteFollower(ctx context.Context
 		return nil, err
 	}
 	return result, nil
+}
+
+//GetFollower return the users details whoe followes to users_id
+func (userRepositoryImpl *UserRepositoryImpl) GetFollower(ctx context.Context, filter bson.M) ([]models.User, error) {
+
+	var followers []models.Followers
+
+	findOptiond := options.Find()
+
+	//  mongo client connection
+	mongoClient := userRepositoryImpl.mongoConn.NewMongoConn(ctx)
+	defer mongoClient.Disconnect(ctx)
+
+	//db and collection
+	collection := mongoClient.Database("bloggingapp").Collection("followers")
+
+	//fetch data from mongo database on tahe basis of filters
+	cur, err := collection.Find(ctx, filter, findOptiond)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+
+	//if cursor having more documents its will itterate over a single documnets
+	for cur.Next(ctx) {
+		var follower models.Followers
+		if err = cur.Decode(&follower); err != nil {
+			log.Logger(ctx).Error(err)
+		}
+		followers = append(followers, follower)
+
+	}
+
+	if err := cur.Err(); err != nil {
+		log.Logger(ctx).Errorf("Error in finding mongo users : %v", err)
+
+		return nil, err
+	}
+	log.Logger(ctx).Info(followers)
+
+	var follIDs []primitive.ObjectID
+	for _, elem := range followers {
+		follIDs = append(follIDs, elem.FollowerID)
+	}
+
+	filterUsers := bson.M{"_id": bson.M{"$in": follIDs}}
+
+	var users []models.User
+
+	//db and collection
+	collection1 := mongoClient.Database("bloggingapp").Collection("users")
+
+	//fetch data from mongo database on tahe basis of filters
+	cur1, err1 := collection1.Find(ctx, filterUsers, findOptiond)
+	if err1 != nil {
+		log.Logger(ctx).Error(err1)
+		return nil, err
+	}
+
+	//if cursor having more documents its will itterate over a single documnets
+	for cur1.Next(ctx) {
+		var user models.User
+		if err1 = cur.Decode(&user); err1 != nil {
+			log.Logger(ctx).Error(err1)
+		}
+		users = append(users, user)
+
+	}
+
+	if err1 := cur1.Err(); err1 != nil {
+		log.Logger(ctx).Error(err1)
+
+		return nil, err1
+	}
+
+	log.Logger(ctx).Info(users)
+	return users, nil
+
 }

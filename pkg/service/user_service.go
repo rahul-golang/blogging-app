@@ -22,6 +22,7 @@ type UserService interface {
 	GetUser(context.Context, string) (*models.User, error)
 	CreateFollower(context.Context, models.Followers) (interface{}, error)
 	DeleteFollower(context.Context, models.Followers) (interface{}, error)
+	GetFollowers(context.Context, string) ([]models.User, error)
 
 	//TODO
 	GetUserProfile(context.Context, string) (*models.UserProfile, error)
@@ -150,6 +151,28 @@ func (b *UserServiceImpl) DeleteFollower(ctx context.Context, followers models.F
 		return nil, err
 	}
 
+	return resp, err
+}
+
+//GetFollowers service
+func (b *UserServiceImpl) GetFollowers(ctx context.Context,
+	strID string) ([]models.User, error) {
+
+	log.Logger(ctx).Info("GetFollowers", strID)
+
+	id, err := primitive.ObjectIDFromHex(strID)
+	if err != nil {
+		log.Logger(ctx).Errorf("Error in stingId To Hex conversion %v", err)
+		return nil, err
+	}
+
+	filter := bson.M{"user_id": bson.M{"$eq": id}}
+
+	resp, err := b.userRepository.GetFollower(ctx, filter)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
 	return resp, err
 }
 

@@ -187,6 +187,26 @@ func (resolver UserResolver) DeleteFollower(params graphql.ResolveParams) (inter
 
 }
 
+//GetFollowers resolver function
+func (resolver UserResolver) GetFollowers(params graphql.ResolveParams) (interface{}, error) {
+
+	var err error
+
+	//Get Context from resolver params
+	ctx := params.Context
+
+	userID := params.Args["user_id"].(string)
+
+	//call to get by id service
+	resp, err := resolver.userService.GetFollowers(ctx, userID)
+	if err != nil {
+		log.Logger(ctx).Error(err)
+		return nil, err
+	}
+	return resp, nil
+
+}
+
 //NewUserSchemaImpl creates GraphQL Schema for User Schema
 //excecutes only once when application starts
 func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
@@ -306,6 +326,16 @@ func (resolver *UserResolver) NewUserSchemaImpl() graphql.Schema {
 						},
 					},
 					Resolve: resolver.GetUserByID,
+				},
+				"followers": &graphql.Field{
+					Type:        graphql.NewList(userType),
+					Description: "Get list of Users",
+					Args: graphql.FieldConfigArgument{
+						"user_id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.String),
+						},
+					},
+					Resolve: resolver.GetFollowers,
 				},
 			},
 		},
